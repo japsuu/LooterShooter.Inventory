@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 076cc65657224d2a88b542e50b4fc0f6, type: 3}
-  m_Name: ItData_Test_2x3
+  m_Name: ItData_Test_2x4
   m_EditorClassIdentifier: 
   _itemName: Item (2x4)
   _itemDescription: Missing Description

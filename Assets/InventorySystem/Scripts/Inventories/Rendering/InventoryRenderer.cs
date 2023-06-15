@@ -31,7 +31,11 @@ namespace InventorySystem.Inventories.Rendering
 
         private void Start()
         {
-            RemoveAllEntities();
+            // Destroy all children >:).
+            for (int i = _entityRootTransform.childCount - 1; i >= 0; i--)
+            {
+                Destroy(_entityRootTransform.GetChild(i).gameObject);
+            }
         }
 
 
@@ -57,7 +61,7 @@ namespace InventorySystem.Inventories.Rendering
             foreach (InventoryItem item in _renderingInventory.Contents)
             {
                 if(item != null)
-                    CreateNewEntity(item);
+                    CreateNewEntityForItem(item);
             }
         }
 
@@ -72,53 +76,49 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        private void CreateNewEntity(InventoryItem item)
+        private void CreateNewEntityForItem(InventoryItem item)
         {
             InventoryEntity entity = Instantiate(_entityPrefab, _entityRootTransform);
 
-            entity.Initialize(item, _slotSize);
+            entity.Initialize(item, _renderingInventory, _slotSize);
             
             _entities.Add(item, entity);
         }
 
 
+        private void RemoveEntityOfItem(InventoryItem item)
+        {
+            if (_entities.Remove(item, out InventoryEntity entity))
+            {
+                Destroy(entity.gameObject);
+            }
+        }
+
+
         private void RemoveAllEntities()
         {
-            for (int i = _entityRootTransform.childCount - 1; i >= 0; i--)
+            foreach (InventoryItem item in _entities.Keys)
             {
-                Destroy(_entityRootTransform.GetChild(i).gameObject);
+                Destroy(_entities[item].gameObject);
             }
+            
             _entities.Clear();
         }
 
 
-        private void OnAddedItem(InventoryItem item)
-        {
-            CreateNewEntity(item);
-        }
+        private void OnAddedItem(InventoryItem item) => CreateNewEntityForItem(item);
+
+
+        private void OnRemovedItem(InventoryItem item) => RemoveEntityOfItem(item);
 
 
         private void OnMovedItem(InventoryItem item, Inventory targetInventory, Vector2Int oldPos, Vector2Int newPos)
         {
             if (!_entities.TryGetValue(item, out InventoryEntity entity))
                 return;
-
-            //BUG: InventoryItem can have events for OnBoundsChanged and OnBeingDestroyed.
                 
             // Relocate the entity.
-            entity.UpdatePositionAndSize();
-        }
-
-
-        private void OnRemovedItem(InventoryItem item)
-        {
-            if (!_entities.TryGetValue(item, out InventoryEntity entity))
-                return;
-
-            //BUG: InventoryItem can have events for OnBoundsChanged and OnBeingDestroyed.
-
-            _entities.Remove(item);
-            Destroy(entity.gameObject);
+            entity.UpdatePositionAndVisuals();
         }
     }
 }
