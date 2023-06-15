@@ -1,7 +1,6 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace SourceData.Scripts
+namespace InventorySystem.Items
 {
     /// <summary>
     /// Data-asset for an item.
@@ -12,30 +11,14 @@ namespace SourceData.Scripts
         [SerializeField] private string _itemName = "MissingYes";
         [SerializeField] private string _itemDescription = "Missing Description";
         [SerializeField] private Sprite itemSprite;
-        [SerializeField] private InventorySize _inventorySize = new(1, 1);
+        [SerializeField, Min(1)] private int _inventoryWidth = 1;
+        [SerializeField, Min(1)] private int _inventoryHeight = 1;
 
         public int HashId => GetHashCode();
         public string Name => _itemName;
         public Sprite Sprite => itemSprite;
         public string Description => _itemDescription;
-        public InventorySize InventorySize => _inventorySize;
-    }
-
-
-    [Serializable]
-    public struct InventorySize
-    {
-        [Min(1)]
-        public int X;
-        
-        [Min(1)]
-        public int Y;
-
-
-        public InventorySize(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
+        public int InventoryWidth => _inventoryWidth;
+        public int InventoryHeight => _inventoryHeight;
     }
 }

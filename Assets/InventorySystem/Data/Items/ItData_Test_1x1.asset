@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _itemName: Item (1x1)
   _itemDescription: Missing Description
-  itemSprite: {fileID: 0}
-  _inventorySize:
-    X: 1
-    Y: 1
+  itemSprite: {fileID: 21300000, guid: 43e0a9ae062b91d4fa69ae0f307825c0, type: 3}
+  _inventoryWidth: 1
+  _inventoryHeight: 1

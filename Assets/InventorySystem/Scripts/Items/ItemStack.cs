@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace SourceData.Scripts
+namespace InventorySystem.Items
 {
     /// <summary>
     /// Represents a certain amount of <see cref="ItemData"/>.
@@ -12,7 +12,6 @@ namespace SourceData.Scripts
         [SerializeField] private ItemData _item;
         [SerializeField, Min(1)] private int _count;
         
-        public int Id => _item.HashId;
         public ItemData Item => _item;
         public int Count => _count;
         public bool IsEmpty => Count < 1;
@@ -34,14 +33,6 @@ namespace SourceData.Scripts
         public static ItemStack operator -(ItemStack a, ItemStack b)
         {
             return new ItemStack(a.Item, a.Count - b.Count);
-        }
-
-
-        public void SpawnAsPickup(Vector2 position)
-        {
-            throw new NotImplementedException();
-            //ItemStackPickup pickup = Object.Instantiate(PrefabReferences.ItemPickupPrefab, position, Quaternion.identity);
-            //pickup.Initialize(this);
         }
 
 
