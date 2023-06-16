@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace InventorySystem.Items
+namespace InventorySystem.Inventories.Items
 {
     /// <summary>
     /// Represents a certain amount of <see cref="ItemData"/>.

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using InventorySystem.Inventories.Items;
 using UnityEngine;
 
 namespace InventorySystem.Inventories.Rendering
@@ -52,16 +53,14 @@ namespace InventorySystem.Inventories.Rendering
         {
             _renderingInventory = inventory;
             _renderingInventory.AddedItem += OnAddedItem;
-            _renderingInventory.MovedItem += OnMovedItem;
             _renderingInventory.RemovedItem += OnRemovedItem;
             
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _renderingInventory.Bounds.Width * _slotSize);
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, _renderingInventory.Bounds.Height * _slotSize);
 
-            foreach (InventoryItem item in _renderingInventory.Contents)
+            foreach (InventoryItem item in _renderingInventory.GetItems())
             {
-                if(item != null)
-                    CreateNewEntityForItem(item);
+                CreateNewEntityForItem(item);
             }
         }
 
@@ -69,7 +68,6 @@ namespace InventorySystem.Inventories.Rendering
         private void StopRenderInventory()
         {
             _renderingInventory.AddedItem -= OnAddedItem;
-            _renderingInventory.MovedItem -= OnMovedItem;
             _renderingInventory.RemovedItem -= OnRemovedItem;
 
             RemoveAllEntities();
@@ -90,7 +88,8 @@ namespace InventorySystem.Inventories.Rendering
         {
             if (_entities.Remove(item, out InventoryEntity entity))
             {
-                Destroy(entity.gameObject);
+                if(entity != null)
+                    Destroy(entity.gameObject);
             }
         }
 
@@ -99,7 +98,8 @@ namespace InventorySystem.Inventories.Rendering
         {
             foreach (InventoryItem item in _entities.Keys)
             {
-                Destroy(_entities[item].gameObject);
+                if(_entities[item] != null)
+                    Destroy(_entities[item].gameObject);
             }
             
             _entities.Clear();
@@ -110,15 +110,5 @@ namespace InventorySystem.Inventories.Rendering
 
 
         private void OnRemovedItem(InventoryItem item) => RemoveEntityOfItem(item);
-
-
-        private void OnMovedItem(InventoryItem item, Inventory targetInventory, Vector2Int oldPos, Vector2Int newPos)
-        {
-            if (!_entities.TryGetValue(item, out InventoryEntity entity))
-                return;
-                
-            // Relocate the entity.
-            entity.UpdatePositionAndVisuals();
-        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using InventorySystem.Items;
+using InventorySystem.Inventories.Items;
 using UnityEngine;
 
 namespace InventorySystem.Inventories
@@ -21,7 +21,6 @@ namespace InventorySystem.Inventories
         private readonly InventoryItem[] _contents;
         
         // Public fields.
-        public IEnumerable<InventoryItem> Contents => _contents;
         public InventoryBounds Bounds => _inventoryBounds;
 
 
@@ -30,6 +29,9 @@ namespace InventorySystem.Inventories
             _inventoryBounds = new InventoryBounds(Vector2Int.zero, width, height);
             _contents = new InventoryItem[width * height];
         }
+
+
+        public IEnumerable<InventoryItem> GetItems() => _contents.Where(item => item != null);
 
 
         public int ContainsItem(ItemData itemData) => _contents.Count(inventoryItem => inventoryItem.Item == itemData);
@@ -76,9 +78,6 @@ namespace InventorySystem.Inventories
 
         public bool TryMoveItem(Vector2Int oldPosition, Vector2Int newPosition, ItemRotation newRotation, Inventory targetInventory)
         {
-            if (oldPosition == newPosition)
-                return false;
-            
             if (!_inventoryBounds.Contains(oldPosition) || !targetInventory._inventoryBounds.Contains(newPosition))
             {
                 Debug("Invalid item indexes!");
@@ -94,22 +93,26 @@ namespace InventorySystem.Inventories
                 return false;
             }
             
+            if (oldPosition == newPosition && movedItem.Rotation == newRotation)
+                return false;
+            
             int toIndex = targetInventory.PositionToIndex(newPosition);
 
             if (toIndex < 0 || toIndex >= targetInventory._contents.Length)
                 return false;
             
             InventoryItem toItem = targetInventory._contents[toIndex];
-            if (toItem != null)
+            if (toItem != null && toItem != movedItem)
             {
                 //TODO: Implement item swapping (swap the two items with each other if possible)
                 Debug("Item swapping not yet implemented!");
                 return false;
             }
 
-            InventoryBounds newBounds = newRotation == ItemRotation.DEG_0 ?
-                new InventoryBounds(newPosition, movedItem.Item.InventoryWidth, movedItem.Item.InventoryHeight) :
-                new InventoryBounds(newPosition, movedItem.Item.InventoryHeight, movedItem.Item.InventoryWidth);
+            bool flipWidthAndHeight = newRotation is ItemRotation.DEG_90 or ItemRotation.DEG_270;
+            InventoryBounds newBounds = flipWidthAndHeight ?
+                new InventoryBounds(newPosition, movedItem.Item.InventorySizeY, movedItem.Item.InventorySizeX) :
+                new InventoryBounds(newPosition, movedItem.Item.InventorySizeX, movedItem.Item.InventorySizeY);
 
             if (!targetInventory.IsBoundsValid(newBounds, movedItem))
                 return false;
@@ -124,8 +127,8 @@ namespace InventorySystem.Inventories
         {
             foreach (Vector2Int position in _inventoryBounds.AllPositionsWithin())
             {
-                InventoryBounds itemBounds = new(position, itemData.InventoryWidth, itemData.InventoryHeight);
-                InventoryBounds itemBoundsRotated = new(position, itemData.InventoryHeight, itemData.InventoryWidth);
+                InventoryBounds itemBounds = new(position, itemData.InventorySizeX, itemData.InventorySizeY);
+                InventoryBounds itemBoundsRotated = new(position, itemData.InventorySizeY, itemData.InventorySizeX);
                 
                 if (IsBoundsValid(itemBounds))
                     return new InventoryItem(itemData, itemBounds, ItemRotation.DEG_0);

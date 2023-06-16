@@ -1,6 +1,7 @@
-﻿using System;
+﻿using InventorySystem.Inventories.Items;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace InventorySystem.Inventories.Rendering
@@ -10,18 +11,19 @@ namespace InventorySystem.Inventories.Rendering
     public class InventoryEntity : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         // Serialized fields.
+        [SerializeField] private RectTransform _contentsRoot;
         [SerializeField] private Image _itemImage;
         
-        // Public fields.
-        public InventoryItem ItemReference;
-        public Vector2Int Position;
-
         // Private fields
+        [SerializeField] private Vector2Int _position;
+        [SerializeField] private ItemRotation _rotation;
+        private InventoryItem _data;
         private Inventory _containingInventory;
         private RectTransform _rectTransform;
         private CanvasGroup _draggingCanvasGroup;
         private Canvas _canvas;
         private float _slotSize;
+        private bool _isUserDragging;
 
 
         private void Awake()
@@ -32,97 +34,146 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
+        private void Update()
+        {
+            if (!_isUserDragging)
+                return;
+            
+            if (Input.GetKeyDown(KeyCode.R))
+                UpdateRotation(_rotation.NextRotation());
+        }
+
+
         public void Initialize(InventoryItem item, Inventory inventory, float slotSize)
         {
             _containingInventory = inventory;
-            ItemReference = item;
+            _data = item;
             _slotSize = slotSize;
-            _itemImage.sprite = item.Item.Sprite;
             
-            UpdatePositionAndVisuals();
+            _itemImage.sprite = _data.Item.Sprite;
+            
+            SetVisualsFromData();
         }
 
 
-        public void UpdatePositionAndVisuals()
+        private void SetVisualsFromData()
         {
-            Position = ItemReference.Position;
-            
-            int itemWidth = ItemReference.Width;
-            int itemHeight = ItemReference.Height;
-            
-            // Update position.
-            float posX = Position.x * _slotSize;
-            float posY = -(Position.y * _slotSize);
-            _rectTransform.anchoredPosition3D = new Vector3(posX, posY, 0);
-            
-            // Update size.
-            float sizeX = itemWidth * _slotSize;
-            float sizeY = itemHeight * _slotSize;
-            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, sizeX);
-            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sizeY);
-            
-            // Update image rotation.
-            bool isRotated = ItemReference.Rotation is ItemRotation.DEG_90 or ItemRotation.DEG_270;
-            float rotation = ItemReference.Rotation.AsDegrees();
-            _itemImage.rectTransform.localRotation = Quaternion.Euler(0f, 0f, rotation);
-            _itemImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, isRotated ? sizeY : sizeX);
-            _itemImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, isRotated? sizeX : sizeY);
+            UpdatePosition(_data.Position);
+
+            UpdateRotation(_data.Rotation);
+
+            UpdateScale(_data.Width, _data.Height, _data.Item.InventorySizeX, _data.Item.InventorySizeY);
         }
-        
-        
+
+
+        private void UpdatePosition(Vector2Int newPosition)
+        {
+            // Set the new position.
+            _position = newPosition;
+            
+            float posX = _position.x * _slotSize;
+            float posY = -(_position.y * _slotSize);
+            _rectTransform.anchoredPosition3D = new Vector3(posX, posY, 0);
+        }
+
+
+        private void UpdateRotation(ItemRotation newRotation)
+        {
+            // Set the new rotation.
+            _rotation = newRotation;
+            
+            // Image rotation:
+            float rotation = _rotation.AsDegrees();
+            _contentsRoot.localRotation = Quaternion.Euler(0f, 0f, rotation);
+
+            bool rotated = _rotation is ItemRotation.DEG_90 or ItemRotation.DEG_270;
+            
+            if(rotated)
+                UpdateScale(_data.Width, _data.Height, _data.Item.InventorySizeX, _data.Item.InventorySizeY);
+            else
+                UpdateScale(_data.Height, _data.Width, _data.Item.InventorySizeX, _data.Item.InventorySizeY);
+        }
+
+
+        private void UpdateScale(float rootWidth, float rootHeight, float contentsSizeX, float contentsSizeY)
+        {
+            float rotatedWidth = rootWidth * _slotSize;
+            float rotatedHeight = rootHeight * _slotSize;
+            
+            float itemWidth = contentsSizeX * _slotSize;
+            float itemHeight = contentsSizeY * _slotSize;
+            
+            // Root object size:
+            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rotatedWidth);
+            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rotatedHeight);
+
+            // Image size:
+            _contentsRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, itemWidth);
+            _contentsRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, itemHeight);
+        }
+
+
         public void OnBeginDrag(PointerEventData eventData)
         {
             // Set the item as the active drag item and bring it to the front.
             _draggingCanvasGroup.blocksRaycasts = false;
             _rectTransform.SetAsLastSibling();
+            _isUserDragging = true;
+            
+            // offsets from top-left corner: print(_rectTransform.position);
+            // offsets from top-left corner: print(eventData.position);
         }
+        
 
         public void OnDrag(PointerEventData eventData)
         {
             _rectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
         }
+        
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            _isUserDragging = false;
             _draggingCanvasGroup.blocksRaycasts = true;
 
             Vector2 dragEndPosition = _rectTransform.anchoredPosition;
             
             // Move back to original position.
-            float posX = Position.x * _slotSize;
-            float posY = -(Position.y * _slotSize);
+            float posX = _position.x * _slotSize;
+            float posY = -(_position.y * _slotSize);
             _rectTransform.anchoredPosition3D = new Vector3(posX, posY, 0);
             
-            // Request the inventory to move us.
+            // Request the inventory to move this entity.
             //TODO: Get the inventory below cursor.
-            RequestMove(CalculateInventoryGridPosition(dragEndPosition), _containingInventory);
-            
-            //_rectTransform.anchoredPosition = CalculateSnappedPosition(_rectTransform.anchoredPosition);
+            RequestMove(GetInventoryGridPosition(dragEndPosition), _containingInventory);
         }
 
 
         private void RequestMove(Vector2Int newPosition, Inventory newInventory)
         {
-            if (_containingInventory.TryMoveItem(Position, newPosition, ItemReference.Rotation, newInventory))
-            {
+            print($"Request:{_position} -> {newPosition}");
+            if (_containingInventory.TryMoveItem(_position, newPosition, _rotation, newInventory))
                 _containingInventory = newInventory;
-            }
-        }
-        
-
-        private Vector2 CalculateSnappedPosition(Vector2 position)
-        {
-            float x = Mathf.Round(position.x / _slotSize) * _slotSize;
-            float y = Mathf.Round(position.y / _slotSize) * _slotSize;
-            return new Vector2(x, y);
+            
+            // Either data didn't change and contains the position where the dragging started,
+            // or it now contains the new position.
+            SetVisualsFromData();
         }
 
 
-        private Vector2Int CalculateInventoryGridPosition(Vector2 position)
+        private Vector2Int GetInventoryGridPosition(Vector2 position)
         {
             int x = Mathf.RoundToInt(position.x / _slotSize);
             int y = -Mathf.RoundToInt(position.y / _slotSize);
             return new Vector2Int(x, y);
+        }
+        
+
+        private Vector2 SnapPositionToGrid(Vector2 position)
+        {
+            float x = Mathf.Round(position.x / _slotSize) * _slotSize;
+            float y = Mathf.Round(position.y / _slotSize) * _slotSize;
+            return new Vector2(x, y);
         }
     }
 }

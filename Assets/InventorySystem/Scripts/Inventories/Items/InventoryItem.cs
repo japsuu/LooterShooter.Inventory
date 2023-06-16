@@ -1,7 +1,6 @@
-﻿using InventorySystem.Items;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace InventorySystem.Inventories
+namespace InventorySystem.Inventories.Items
 {
     public class InventoryItem
     {
