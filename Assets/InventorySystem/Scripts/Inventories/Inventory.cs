@@ -142,7 +142,7 @@ namespace InventorySystem.Inventories
         
         
         /// <returns>If given item is inside the inventory and does not overlap with any other item.</returns>
-        private bool IsBoundsValid(InventoryBounds itemBounds)
+        public bool IsBoundsValid(InventoryBounds itemBounds)
         {
             // Check if the item fits within the inventory bounds.
             if (!_inventoryBounds.Contains(itemBounds))
@@ -166,7 +166,7 @@ namespace InventorySystem.Inventories
         
         
         /// <returns>If given item is inside the inventory and does not overlap with any other item.</returns>
-        private bool IsBoundsValid(InventoryBounds itemBounds, InventoryItem itemToIgnore)
+        public bool IsBoundsValid(InventoryBounds itemBounds, InventoryItem itemToIgnore)
         {
             // Check if the item fits within the inventory bounds.
             if (!_inventoryBounds.Contains(itemBounds))

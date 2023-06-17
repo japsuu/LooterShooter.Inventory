@@ -24,6 +24,7 @@ namespace InventorySystem.Inventories.Items
         }
 
 
+        //TODO: Update to only take in position and rotation. Rest can be calculated manually here.
         public void UpdateBounds(InventoryBounds bounds, ItemRotation rotation)
         {
             Bounds = bounds;

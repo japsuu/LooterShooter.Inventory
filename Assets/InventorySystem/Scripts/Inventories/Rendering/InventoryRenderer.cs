@@ -13,12 +13,16 @@ namespace InventorySystem.Inventories.Rendering
         // Serialized fields.
         [SerializeField] private RectTransform _entityRootTransform;
         [SerializeField] private InventoryEntity _entityPrefab;
+        [SerializeField] private InventoryEntityPositionValidator _validator;
         [SerializeField] private float _slotSize = 100f;
 
         // Private fields.
         private RectTransform _rectTransform;
         private Inventory _renderingInventory;
         private Dictionary<InventoryItem, InventoryEntity> _entities;
+        
+        // Public fields.
+        public static InventoryEntityPositionValidator Validator { get; private set; }
 
 
         private void Awake()
@@ -37,6 +41,9 @@ namespace InventorySystem.Inventories.Rendering
             {
                 Destroy(_entityRootTransform.GetChild(i).gameObject);
             }
+
+            if(Validator == null)
+                Validator = _validator;
         }
 
 
