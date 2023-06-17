@@ -103,8 +103,8 @@ namespace InventorySystem.Inventories.Rendering
         private void UpdateVisuals()
         {
             UpdateRotation(Data.Rotation);
-            (float rootWidth, float rootHeight) = UpdateSize();
-            UpdatePosition(rootWidth, rootHeight);
+            UpdateSize();
+            UpdatePosition();
         }
 
 
@@ -118,7 +118,7 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        private (float width, float height) UpdateSize()
+        private void UpdateSize()
         {
             // Root object size:
             // If the object is rotated, we need to flip width and height.
@@ -139,20 +139,18 @@ namespace InventorySystem.Inventories.Rendering
 
             _contentsRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, contentsWidth);
             _contentsRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentsHeight);
-
-            return (rootWidth, rootHeight);
         }
 
 
-        private void UpdatePosition(float rootWidth, float rootHeight)
+        private void UpdatePosition()
         {
             // Set the new position.
             _position = Data.Position;
 
             // Move to new position.
-            float posX = _position.x * _slotSize + rootWidth / 2f;
-            float posY = -(_position.y * _slotSize + rootHeight / 2f);
-            RectTransform.anchoredPosition3D = new Vector3(posX, posY, 0);
+            float posX = _position.x * _slotSize;
+            float posY = -(_position.y * _slotSize);
+            RectTransform.anchoredPosition = new Vector3(posX, posY, 0);
         }
 
 
@@ -186,20 +184,21 @@ namespace InventorySystem.Inventories.Rendering
             InventoryRenderer.Validator.Hide();
 
             // Get the top-left corner position.
-            Vector2 dragEndPosition = GetTopLeftCornerPosition();
+            Vector2 topLeftCorner = GetTopLeftCornerPosition();
 
             // Request the inventory to move this entity. TODO: Get the inventory below cursor.
-            RequestMove(GetInventoryGridPosition(dragEndPosition), _containingInventory);
+            RequestMove(GetInventoryGridPosition(topLeftCorner), _containingInventory);
         }
 
 
         private Vector2 GetTopLeftCornerPosition()
         {
-            RectTransform.GetLocalCorners(_rectTransformCorners);
-            Vector2 cornerPos = new(
-                RectTransform.anchoredPosition.x + _rectTransformCorners[0].x,
-                RectTransform.anchoredPosition.y - _rectTransformCorners[0].y);
-            return cornerPos;
+            // Below is the code to get the top-left corner when the pivot is set to the center of the object.
+            // RectTransform.GetLocalCorners(_rectTransformCorners);
+            // Vector2 cornerPos = new(
+            //     RectTransform.anchoredPosition.x + _rectTransformCorners[0].x,
+            //     RectTransform.anchoredPosition.y - _rectTransformCorners[0].y);
+            return RectTransform.anchoredPosition;
         }
 
 
