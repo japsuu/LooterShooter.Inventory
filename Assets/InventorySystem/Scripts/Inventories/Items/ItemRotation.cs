@@ -6,8 +6,8 @@ namespace InventorySystem.Inventories.Items
     {
         DEG_0,
         DEG_90,
-        DEG_180,
-        DEG_270
+        //DEG_180,
+        //DEG_270
     }
 
     public static class InventoryEntityRotationExtensions
@@ -17,9 +17,9 @@ namespace InventorySystem.Inventories.Items
             return current switch
             {
                 ItemRotation.DEG_0 => ItemRotation.DEG_90,
-                ItemRotation.DEG_90 => ItemRotation.DEG_180,
-                ItemRotation.DEG_180 => ItemRotation.DEG_270,
-                ItemRotation.DEG_270 => ItemRotation.DEG_0,
+                ItemRotation.DEG_90 => ItemRotation.DEG_0,
+                //ItemRotation.DEG_180 => ItemRotation.DEG_270,
+                //ItemRotation.DEG_270 => ItemRotation.DEG_0,
                 _ => throw new ArgumentOutOfRangeException(nameof(current), current, null)
             };
         }
@@ -30,8 +30,20 @@ namespace InventorySystem.Inventories.Items
             {
                 ItemRotation.DEG_0 => 0f,
                 ItemRotation.DEG_90 => -90f,
-                ItemRotation.DEG_180 => -180f,
-                ItemRotation.DEG_270 => -270f,
+                //ItemRotation.DEG_180 => -180f,
+                //ItemRotation.DEG_270 => -270f,
+                _ => throw new ArgumentOutOfRangeException(nameof(current), current, null)
+            };
+        }
+        
+        public static bool ShouldFlipWidthAndHeight(this ItemRotation current)
+        {
+            return current switch
+            {
+                ItemRotation.DEG_0 => false,
+                ItemRotation.DEG_90 => true,
+                //ItemRotation.DEG_180 => -180f,
+                //ItemRotation.DEG_270 => -270f,
                 _ => throw new ArgumentOutOfRangeException(nameof(current), current, null)
             };
         }

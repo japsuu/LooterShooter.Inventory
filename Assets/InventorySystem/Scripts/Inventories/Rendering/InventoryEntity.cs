@@ -18,11 +18,8 @@ namespace InventorySystem.Inventories.Rendering
         // Private fields
         private Vector2Int _position;
         private ItemRotation _rotation;
-        private Vector2 _rootSize;
         private Inventory _containingInventory;
         private CanvasGroup _draggingCanvasGroup;
-        private Vector3[] _rectTransformCorners;
-        private Vector2 _validatorPosition;
         private Canvas _canvas;
         private float _slotSize;
         private float _targetContentRotation;
@@ -34,7 +31,6 @@ namespace InventorySystem.Inventories.Rendering
 
         private void Awake()
         {
-            _rectTransformCorners = new Vector3[4];
             RectTransform = GetComponent<RectTransform>();
             _draggingCanvasGroup = GetComponent<CanvasGroup>();
             _canvas = GetComponentInParent<Canvas>();
@@ -59,6 +55,8 @@ namespace InventorySystem.Inventories.Rendering
                 
             // Update validator.
             InventoryRenderer.Validator.SetTargetEntity(this, RectTransform.sizeDelta.x, RectTransform.sizeDelta.y);
+            Vector3 snappedPosition = SnapPositionToGrid(RectTransform.anchoredPosition);
+            InventoryRenderer.Validator.UpdateAnchoredPosition(snappedPosition, this);
         }
 
 
@@ -86,7 +84,7 @@ namespace InventorySystem.Inventories.Rendering
 
         public InventoryBounds GetBounds()
         {
-            bool isRotated = _rotation is ItemRotation.DEG_90 or ItemRotation.DEG_270;
+            bool isRotated = _rotation.ShouldFlipWidthAndHeight();
             int itemSizeX = Data.Item.InventorySizeX;
             int itemSizeY = Data.Item.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
@@ -122,7 +120,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             // Root object size:
             // If the object is rotated, we need to flip width and height.
-            bool isRotated = _rotation is ItemRotation.DEG_90 or ItemRotation.DEG_270;
+            bool isRotated = _rotation.ShouldFlipWidthAndHeight();
             int itemSizeX = Data.Item.InventorySizeX;
             int itemSizeY = Data.Item.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
@@ -133,12 +131,43 @@ namespace InventorySystem.Inventories.Rendering
             float rootHeight = itemHeight * _slotSize;
             float contentsWidth = itemSizeX * _slotSize;
             float contentsHeight = itemSizeY * _slotSize;
+            Vector2 rootNewSize = new(rootWidth, rootHeight);
+            Vector2 contentsNewSize = new(contentsWidth, contentsHeight);
+            
+            // Adjust position to account for non-center pivot/anchor.
+            // We need to do this because the object's pivot point is set to the top-left corner.
+            // This basically means, that the pivot point will stay at the same point relative to the cursor.
+            // With this change, the center of the rectTransform will stay at place relative to the cursor.
+            Vector2 positionAdjustment = new Vector2(-(rootNewSize.x - RectTransform.sizeDelta.x), rootNewSize.y - RectTransform.sizeDelta.y) * 0.5f;
 
+            // Adjust size.
+            RectTransform.sizeDelta = rootNewSize;
+            _contentsRoot.sizeDelta = contentsNewSize;
+            
+            // Adjust position.
+            RectTransform.anchoredPosition += positionAdjustment;
+            
+            // I have left the old code for center pivot below.
+            /*// Cache the original anchor and pivot points.
+            Vector2 originalAnchorMin = RectTransform.anchorMin;
+            Vector2 originalAnchorMax = RectTransform.anchorMax;
+            Vector2 originalPivot = RectTransform.pivot;
+
+            // Set the anchor and pivot points to the center.
+            RectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            RectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            RectTransform.pivot = new Vector2(0.5f, 0.5f);
+
+            // Scale the rectTransforms.
             RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rootWidth);
             RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rootHeight);
-
             _contentsRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, contentsWidth);
             _contentsRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentsHeight);
+
+            // Restore the original anchor and pivot points.
+            RectTransform.anchorMin = originalAnchorMin;
+            RectTransform.anchorMax = originalAnchorMax;
+            RectTransform.pivot = originalPivot;*/
         }
 
 
@@ -156,10 +185,11 @@ namespace InventorySystem.Inventories.Rendering
 
         public void OnBeginDrag(PointerEventData eventData)
         {
+            //TODO: Get offset between anchoredPosition and mouse position.
             // Set the item as the active drag item and bring it to the front.
             _draggingCanvasGroup.blocksRaycasts = false;
             _isUserDragging = true;
-            
+
             // Update validator.
             InventoryRenderer.Validator.SetTargetEntity(this, RectTransform.sizeDelta.x, RectTransform.sizeDelta.y);
         }
@@ -167,6 +197,7 @@ namespace InventorySystem.Inventories.Rendering
 
         public void OnDrag(PointerEventData eventData)
         {
+            //TODO: Apply mouse offset.
             RectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
             
             // Update validator.

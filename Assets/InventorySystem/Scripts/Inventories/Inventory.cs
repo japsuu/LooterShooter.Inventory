@@ -109,7 +109,7 @@ namespace InventorySystem.Inventories
                 return false;
             }
 
-            bool flipWidthAndHeight = newRotation is ItemRotation.DEG_90 or ItemRotation.DEG_270;
+            bool flipWidthAndHeight = newRotation.ShouldFlipWidthAndHeight();
             InventoryBounds newBounds = flipWidthAndHeight ?
                 new InventoryBounds(newPosition, movedItem.Item.InventorySizeY, movedItem.Item.InventorySizeX) :
                 new InventoryBounds(newPosition, movedItem.Item.InventorySizeX, movedItem.Item.InventorySizeY);
@@ -233,7 +233,7 @@ namespace InventorySystem.Inventories
         
         private Vector2Int IndexToPosition(int index) => new(index % _inventoryBounds.Width, index / _inventoryBounds.Width);
 
-
+#pragma warning disable CS0162
         private static void Debug(string text)
         {
             if(DEBUG_MODE)
