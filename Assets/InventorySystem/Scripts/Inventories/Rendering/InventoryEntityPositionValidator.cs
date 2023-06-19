@@ -8,6 +8,8 @@ namespace InventorySystem.Inventories.Rendering
     [RequireComponent(typeof(Image))]
     public class InventoryEntityPositionValidator : MonoBehaviour
     {
+        public static InventoryEntityPositionValidator Singleton;
+        
         [SerializeField] private Color _validPositionColor = new Color(0f, 1f, 0f, 0.4f);
         [SerializeField] private Color _invalidPositionColor = new Color(1f, 0f, 0f, 0.4f);
         
@@ -18,6 +20,14 @@ namespace InventorySystem.Inventories.Rendering
 
         private void Awake()
         {
+            if (Singleton != null)
+            {
+                Debug.LogError($"Multiple {nameof(InventoryEntityPositionValidator)} in scene!");
+                return;
+            }
+
+            Singleton = this;
+            
             _rectTransform = GetComponent<RectTransform>();
             _validatorImage = GetComponent<Image>();
             Hide();
@@ -37,7 +47,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             _targetEntity = entity;
             _validatorImage.enabled = true;
-            _rectTransform.SetParent(_targetEntity.RectTransform.parent);
+            _rectTransform.SetParent(_targetEntity.transform.parent);
             
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
@@ -55,7 +65,7 @@ namespace InventorySystem.Inventories.Rendering
             _validatorImage.enabled = true;
             _rectTransform.anchoredPosition = anchoredPosition;
 
-            bool isValidPosition = entity.GetInventoryBelowCursor().IsBoundsValid(entity.GetBounds(), entity.Data);
+            bool isValidPosition = entity.GetInventoryBelowEntity().IsBoundsValid(entity.GetBounds(), entity.Data);
             _validatorImage.color = isValidPosition ? _validPositionColor : _invalidPositionColor;
         }
     }

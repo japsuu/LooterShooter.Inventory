@@ -1,36 +1,33 @@
 ﻿using System.Collections.Generic;
 using InventorySystem.Inventories.Items;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
     public class InventoryRenderer : MonoBehaviour
     {
-        // Singleton.
+        // Singleton. TODO: Remove. Add a InventoryManager with a static inventory to Rendering root. Methods: AddStartingInventory, AddClothes etc.
         public static InventoryRenderer Singleton;
 
         // Serialized fields.
+        [SerializeField] private LayoutElement _inventoryLayoutElement;
         [SerializeField] private RectTransform _entityRootTransform;
+        [SerializeField] private Image _slotsImage;
         [SerializeField] private InventoryEntity _entityPrefab;
-        [SerializeField] private InventoryEntityPositionValidator _validator;
         [SerializeField] private float _slotSize = 100f;
 
         // Private fields.
-        private RectTransform _rectTransform;
         private Inventory _renderingInventory;
         private Dictionary<InventoryItem, InventoryEntity> _entities;
         
-        // Public fields.
-        public static InventoryEntityPositionValidator Validator { get; private set; }
-
 
         private void Awake()
         {
             Singleton = this;
 
             _entities = new();
-            _rectTransform = GetComponent<RectTransform>();
         }
 
 
@@ -41,9 +38,6 @@ namespace InventorySystem.Inventories.Rendering
             {
                 Destroy(_entityRootTransform.GetChild(i).gameObject);
             }
-
-            if(Validator == null)
-                Validator = _validator;
         }
 
 
@@ -61,9 +55,17 @@ namespace InventorySystem.Inventories.Rendering
             _renderingInventory = inventory;
             _renderingInventory.AddedItem += OnAddedItem;
             _renderingInventory.RemovedItem += OnRemovedItem;
+
+            float width = _renderingInventory.Bounds.Width * _slotSize;
+            float height = _renderingInventory.Bounds.Height * _slotSize;
             
-            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _renderingInventory.Bounds.Width * _slotSize);
-            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, _renderingInventory.Bounds.Height * _slotSize);
+            // Resize the grid.
+            _inventoryLayoutElement.minWidth = width;
+            _inventoryLayoutElement.minHeight = height;
+            
+            // Resize the slots image.
+            _slotsImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            _slotsImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
 
             foreach (InventoryItem item in _renderingInventory.GetItems())
             {
@@ -85,7 +87,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             InventoryEntity entity = Instantiate(_entityPrefab, _entityRootTransform);
 
-            entity.Initialize(item, _renderingInventory, _slotSize);
+            entity.Initialize(item, _renderingInventory);
             
             _entities.Add(item, entity);
         }
