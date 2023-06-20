@@ -9,9 +9,9 @@ namespace InventorySystem.Inventories
     public class Inventory
     {
         // Events.
-        public event Action<InventoryItem> AddedItem;
-        public event Action<InventoryItem, Inventory, Vector2Int, Vector2Int> MovedItem;
-        public event Action<InventoryItem> RemovedItem;
+        public event Action<Inventory, InventoryItem> AddedItem;
+        public event Action<Inventory, Inventory, InventoryItem, Vector2Int, Vector2Int> MovedItem;
+        public event Action<Inventory, InventoryItem> RemovedItem;
 
         // Constants.
         private const bool DEBUG_MODE = false;
@@ -78,9 +78,15 @@ namespace InventorySystem.Inventories
 
         public bool TryMoveItem(Vector2Int oldPosition, Vector2Int newPosition, ItemRotation newRotation, Inventory targetInventory)
         {
+            if (targetInventory == null)
+            {
+                Debug("TargetInventory was null!");
+                return false;
+            }
+            
             if (!_inventoryBounds.Contains(oldPosition) || !targetInventory._inventoryBounds.Contains(newPosition))
             {
-                Debug("Invalid item indexes!");
+                Debug("Invalid from/to position!");
                 return false;
             }
             
@@ -93,7 +99,7 @@ namespace InventorySystem.Inventories
                 return false;
             }
             
-            if (oldPosition == newPosition && movedItem.Rotation == newRotation)
+            if (oldPosition == newPosition && movedItem.Rotation == newRotation && targetInventory == this)
                 return false;
             
             int toIndex = targetInventory.PositionToIndex(newPosition);
@@ -119,25 +125,8 @@ namespace InventorySystem.Inventories
 
             MoveInventoryItem(movedItem, targetInventory, newBounds, newRotation);
 
+            Debug("Move success!");
             return true;
-        }
-
-
-        private InventoryItem CreateNewInventoryItem(ItemData itemData)
-        {
-            foreach (Vector2Int position in _inventoryBounds.AllPositionsWithin())
-            {
-                InventoryBounds itemBounds = new(position, itemData.InventorySizeX, itemData.InventorySizeY);
-                InventoryBounds itemBoundsRotated = new(position, itemData.InventorySizeY, itemData.InventorySizeX);
-                
-                if (IsBoundsValid(itemBounds))
-                    return new InventoryItem(itemData, itemBounds, ItemRotation.DEG_0);
-                
-                if (IsBoundsValid(itemBoundsRotated))
-                    return new InventoryItem(itemData, itemBoundsRotated, ItemRotation.DEG_90);
-            }
-
-            return null;
         }
         
         
@@ -195,11 +184,29 @@ namespace InventorySystem.Inventories
         }
 
 
+        private InventoryItem CreateNewInventoryItem(ItemData itemData)
+        {
+            foreach (Vector2Int position in _inventoryBounds.AllPositionsWithin())
+            {
+                InventoryBounds itemBounds = new(position, itemData.InventorySizeX, itemData.InventorySizeY);
+                InventoryBounds itemBoundsRotated = new(position, itemData.InventorySizeY, itemData.InventorySizeX);
+                
+                if (IsBoundsValid(itemBounds))
+                    return new InventoryItem(itemData, itemBounds, ItemRotation.DEG_0);
+                
+                if (IsBoundsValid(itemBoundsRotated))
+                    return new InventoryItem(itemData, itemBoundsRotated, ItemRotation.DEG_90);
+            }
+
+            return null;
+        }
+
+
         private void AddInventoryItem(InventoryItem item)
         {
             _contents[PositionToIndex(item.Bounds.Position)] = item;
             
-            AddedItem?.Invoke(item);
+            AddedItem?.Invoke(this, item);
         }
 
 
@@ -207,7 +214,7 @@ namespace InventorySystem.Inventories
         {
             _contents[PositionToIndex(item.Bounds.Position)] = null;
             
-            RemovedItem?.Invoke(item);
+            RemovedItem?.Invoke(this, item);
         }
 
 
@@ -223,7 +230,7 @@ namespace InventorySystem.Inventories
             
             item.UpdateBounds(newBounds, newRotation);
             
-            MovedItem?.Invoke(item, toInventory, oldPos, newPos);
+            MovedItem?.Invoke(this, toInventory, item, oldPos, newPos);
         }
 
 

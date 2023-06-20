@@ -6,20 +6,22 @@ namespace InventorySystem.Clothing
 {
     /// <summary>
     /// Controls equipping and removing <see cref="ClothingItem"/>s.
-    /// Talks to <see cref="InventoryManager"/> to add inventories for the equipped clothes.
+    /// Talks to <see cref="PlayerInventoryManager"/> to add inventories for the equipped clothes.
     /// </summary>
-    [RequireComponent(typeof(InventoryManager))]
-    public class ClothingManager : MonoBehaviour
+    [RequireComponent(typeof(PlayerInventoryManager))]
+    public class PlayerClothingManager : MonoBehaviour
     {
+        public static PlayerClothingManager Singleton;
+        
         [SerializeField] private List<ClothingItem> _startingClothes;
 
-        private InventoryManager _inventoryManager;
+        private PlayerInventoryManager _playerInventoryManager;
         private Dictionary<ClothingType, ClothingItem> _equippedClothingItems;
 
 
         private void Awake()
         {
-            _inventoryManager = GetComponent<InventoryManager>();
+            _playerInventoryManager = GetComponent<PlayerInventoryManager>();
             _equippedClothingItems = new();
 
             // Equip starting clothes.
@@ -38,7 +40,7 @@ namespace InventorySystem.Clothing
                 int inventoryHeight = clothes.ContainedInventoryHeight;
                 
                 if(inventoryWidth > 0 && inventoryHeight > 0)
-                    _inventoryManager.AddInventory(clothes.Type.ToString(), inventoryWidth, inventoryHeight);
+                    _playerInventoryManager.AddInventory(clothes.Type.ToString(), inventoryWidth, inventoryHeight);
                 
                 return true;
             }
@@ -52,7 +54,7 @@ namespace InventorySystem.Clothing
         {
             if (_equippedClothingItems.Remove(type, out ClothingItem clothes))
             {
-                _inventoryManager.RemoveInventory(clothes.Type.ToString());
+                _playerInventoryManager.RemoveInventory(clothes.Type.ToString());
                 return true;
             }
 

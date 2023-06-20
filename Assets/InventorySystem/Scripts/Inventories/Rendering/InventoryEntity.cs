@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using InventorySystem.Inventories.Items;
+﻿using InventorySystem.Inventories.Items;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -15,17 +15,21 @@ namespace InventorySystem.Inventories.Rendering
         [SerializeField] private Image _itemImage;
         [SerializeField] private float _rotationSpeed = 20f;
 
-        // Private fields
+        // Private fields: Initialization.
+        private InventoryItem _data;
+        private Inventory _containingInventory;
         private RectTransform _rectTransform;
         private CanvasGroup _draggingCanvasGroup;
-        private Canvas _canvas;
-        private Inventory _containingInventory;
+        // Private fields: Runtime.
+        private InventoryRenderer _belowRenderer;
+        private Canvas _temporaryOverrideCanvas;
         private Vector2Int _position;
         private ItemRotation _rotation;
+        private Vector2 _dragStartCursorPosition;
+        private Vector2 _dragStartObjectPosition;
         private float _targetContentRotation;
         private bool _isUserDragging;
-
-        public InventoryItem Data { get; private set; }
+        private readonly Vector3[] _rectCornersArray = new Vector3[4];
 
 
         private void Awake()
@@ -52,18 +56,17 @@ namespace InventorySystem.Inventories.Rendering
             UpdateSize();
                 
             // Update validator.
-            InventoryEntityPositionValidator.Singleton.SetTargetEntity(this, _rectTransform.sizeDelta.x, _rectTransform.sizeDelta.y);
-            Vector3 snappedPosition = InventoryUtilities.SnapPositionToInventoryGrid(_rectTransform.anchoredPosition);
-            InventoryEntityPositionValidator.Singleton.UpdateAnchoredPosition(snappedPosition, this);
+            UpdateValidatorSize();
+            UpdateValidatorPosition();
         }
 
 
         public void Initialize(InventoryItem item, Inventory inventory)
         {
             _containingInventory = inventory;
-            Data = item;
+            _data = item;
             
-            _itemImage.sprite = Data.Item.Sprite;
+            _itemImage.sprite = _data.Item.Sprite;
             
             UpdateVisuals();
 
@@ -72,54 +75,34 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public Inventory GetInventoryBelowEntity()
-        {
-            print(RaycastMouse().Count);
-            
-            // TODO: BUG: Implement
-            return _containingInventory;
-        }
-
-
-        private static InventoryRenderer RaycastMouse(Vector2 screenSpacePosition)
-        {
-            PointerEventData pointerData = new(EventSystem.current)
-            {
-                pointerId = -1,
-                position = screenSpacePosition
-            };
-
-            List<RaycastResult> results = new();
-            EventSystem.current.RaycastAll(pointerData, results);
-
-            foreach (RaycastResult result in results)
-            {
-                if(result.gameObject.)
-            }
-		
-            return results;
-        }
-
-
-        public InventoryBounds GetBounds()
+        private InventoryBounds GetBounds(RectTransform positionRelativeTo)
         {
             bool isRotated = _rotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = Data.Item.InventorySizeX;
-            int itemSizeY = Data.Item.InventorySizeY;
+            int itemSizeX = _data.Item.InventorySizeX;
+            int itemSizeY = _data.Item.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
 
             // Get the top-left corner position.
-            Vector2 topLeftCorner = _rectTransform.anchoredPosition;
+            Vector2 topLeftCorner = GetAnchoredPositionRelativeToRect(positionRelativeTo);
             
-            InventoryBounds bounds = new(InventoryUtilities.GetInventoryGridPosition(topLeftCorner), itemWidth, itemHeight);
+            InventoryBounds bounds = new(Utilities.GetInventoryGridPosition(topLeftCorner), itemWidth, itemHeight);
             return bounds;
+        }
+
+
+        public bool IsBoundsValid()
+        {
+            if (_belowRenderer == null)
+                return false;
+            
+            return _belowRenderer.TargetInventory.IsBoundsValid(GetBounds(_belowRenderer.EntityRootTransform), _data);
         }
 
 
         private void UpdateVisuals()
         {
-            UpdateRotation(Data.Rotation);
+            UpdateRotation(_data.Rotation);
             UpdateSize();
             UpdatePosition();
         }
@@ -140,16 +123,16 @@ namespace InventorySystem.Inventories.Rendering
             // Root object size:
             // If the object is rotated, we need to flip width and height.
             bool isRotated = _rotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = Data.Item.InventorySizeX;
-            int itemSizeY = Data.Item.InventorySizeY;
+            int itemSizeX = _data.Item.InventorySizeX;
+            int itemSizeY = _data.Item.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
             
             // Calculate width as pixels.
-            float rootWidth = itemWidth * InventoryUtilities.INVENTORY_SLOT_SIZE;
-            float rootHeight = itemHeight * InventoryUtilities.INVENTORY_SLOT_SIZE;
-            float contentsWidth = itemSizeX * InventoryUtilities.INVENTORY_SLOT_SIZE;
-            float contentsHeight = itemSizeY * InventoryUtilities.INVENTORY_SLOT_SIZE;
+            float rootWidth = itemWidth * Utilities.INVENTORY_SLOT_SIZE;
+            float rootHeight = itemHeight * Utilities.INVENTORY_SLOT_SIZE;
+            float contentsWidth = itemSizeX * Utilities.INVENTORY_SLOT_SIZE;
+            float contentsHeight = itemSizeY * Utilities.INVENTORY_SLOT_SIZE;
             Vector2 rootNewSize = new(rootWidth, rootHeight);
             Vector2 contentsNewSize = new(contentsWidth, contentsHeight);
             
@@ -157,10 +140,12 @@ namespace InventorySystem.Inventories.Rendering
             // We need to do this because the object's pivot point is set to the top-left corner.
             // This basically means, that the pivot point will stay at the same point relative to the cursor.
             // With this change, the center of the rectTransform will stay at place relative to the cursor.
-            Vector2 positionAdjustment = new Vector2(-(rootNewSize.x - _rectTransform.sizeDelta.x), rootNewSize.y - _rectTransform.sizeDelta.y) * 0.5f;
+            Vector2 sizeDelta = _rectTransform.sizeDelta;
+            Vector2 positionAdjustment = new Vector2(-(rootNewSize.x - sizeDelta.x), rootNewSize.y - sizeDelta.y) * 0.5f;
 
             // Adjust size.
-            _rectTransform.sizeDelta = rootNewSize;
+            sizeDelta = rootNewSize;
+            _rectTransform.sizeDelta = sizeDelta;
             _contentsRoot.sizeDelta = contentsNewSize;
             
             // Adjust position.
@@ -189,43 +174,55 @@ namespace InventorySystem.Inventories.Rendering
             RectTransform.pivot = originalPivot;*/
         }
 
-
         private void UpdatePosition()
         {
             // Set the new position.
-            _position = Data.Position;
+            _position = _data.Position;
 
             // Move to new position.
-            float posX = _position.x * InventoryUtilities.INVENTORY_SLOT_SIZE;
-            float posY = -(_position.y * InventoryUtilities.INVENTORY_SLOT_SIZE);
+            float posX = _position.x * Utilities.INVENTORY_SLOT_SIZE;
+            float posY = -(_position.y * Utilities.INVENTORY_SLOT_SIZE);
             _rectTransform.anchoredPosition = new Vector3(posX, posY, 0);
         }
 
-
+        
         public void OnBeginDrag(PointerEventData eventData)
         {
             _draggingCanvasGroup.blocksRaycasts = false;
             _isUserDragging = true;
             
-            _canvas = gameObject.AddComponent<Canvas>();
-            _canvas.overrideSorting = true;
-            _canvas.sortingOrder = 9999;
+            _temporaryOverrideCanvas = gameObject.AddComponent<Canvas>();
+            _temporaryOverrideCanvas.overrideSorting = true;
+            _temporaryOverrideCanvas.sortingOrder = 9999;
+
+            _dragStartCursorPosition = eventData.position;
+            _dragStartObjectPosition = _rectTransform.position;
 
             // Update validator.
-            InventoryEntityPositionValidator.Singleton.SetTargetEntity(this, _rectTransform.sizeDelta.x, _rectTransform.sizeDelta.y);
+            UpdateValidatorSize();
         }
-        
+
 
         public void OnDrag(PointerEventData eventData)
         {
-            _rectTransform.anchoredPosition += eventData.delta / _canvas.scaleFactor;
-            
-            // Update validator.
-            Vector3 snappedPosition = InventoryUtilities.SnapPositionToInventoryGrid(_rectTransform.anchoredPosition);
+            //_rectTransform.anchoredPosition += eventData.delta / _temporaryOverrideCanvas.scaleFactor;
 
-            InventoryEntityPositionValidator.Singleton.UpdateAnchoredPosition(snappedPosition, this);
+            //WARN: Because OnDrag is only called when the cursor moves, the Entity might "lag behind" when scrolling etc.
+            //WARN: Tried calling this in Update, but that fucks up the rotation offset. TODO: Fix later.
+            MoveToMousePosition();
         }
+
         
+        private void MoveToMousePosition()
+        {
+            Vector2 currentMousePosition = Input.mousePosition;
+            Vector2 offset = currentMousePosition - _dragStartCursorPosition;
+            Vector2 targetObjectPosition = _dragStartObjectPosition + offset;
+            _rectTransform.position = targetObjectPosition;
+            _belowRenderer = GetInventoryRendererBelow();
+            UpdateValidatorPosition();
+        }
+
 
         public void OnEndDrag(PointerEventData eventData)
         {
@@ -233,23 +230,87 @@ namespace InventorySystem.Inventories.Rendering
             _draggingCanvasGroup.blocksRaycasts = true;
             InventoryEntityPositionValidator.Singleton.Hide();
 
-            if (_canvas != null)
-                Destroy(_canvas);
+            if (_temporaryOverrideCanvas != null)
+                Destroy(_temporaryOverrideCanvas);
 
-            // Request the inventory to move this entity. TODO: Get the inventory below cursor.
-            RequestMove(InventoryUtilities.GetInventoryGridPosition(_rectTransform.anchoredPosition), _containingInventory);
+            // Request the inventory to move this entity.
+            RequestMove();
         }
 
 
-        private void RequestMove(Vector2Int newPosition, Inventory newInventory)
+        private void UpdateValidatorSize()
         {
-            // print($"Request:{_position} -> {newPosition}");
-            if (_containingInventory.TryMoveItem(_position, newPosition, _rotation, newInventory))
-                _containingInventory = newInventory;
+            Vector2 sizeDelta = _rectTransform.sizeDelta;
+            InventoryEntityPositionValidator.Singleton.UpdateSize(sizeDelta.x, sizeDelta.y);
+        }
+
+
+        private void UpdateValidatorPosition()
+        {
+            if (_belowRenderer != null)
+            {
+                Vector2 relativeAnchoredPos = GetAnchoredPositionRelativeToRect(_belowRenderer.EntityRootTransform);
+                Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeAnchoredPos);
+                Vector2 screenSpacePos = _belowRenderer.EntityRootTransform.GetScreenSpacePosition(snappedPos);
+
+                InventoryEntityPositionValidator.Singleton.UpdatePosition(screenSpacePos, this);
+            }
+            else
+            {
+                Vector2 snappedPosition = Utilities.SnapPositionToInventoryGrid(_rectTransform.anchoredPosition);
+                InventoryEntityPositionValidator.Singleton.UpdatePosition(
+                    ((RectTransform)_rectTransform.parent).GetScreenSpacePosition(snappedPosition), this);
+            }
+        }
+
+
+        private void RequestMove()
+        {
+            if (_belowRenderer != null)
+            {
+                Vector2 relativeAnchoredPosition = GetAnchoredPositionRelativeToRect(_belowRenderer.EntityRootTransform);
+                Vector2Int newPosition = Utilities.GetInventoryGridPosition(relativeAnchoredPosition);
+                // print($"Request:{_position} -> {newPosition}");
+
+                Inventory newInventory = GetInventoryBelow();
+                if (_containingInventory.TryMoveItem(_position, newPosition, _rotation, newInventory))
+                {
+                    _containingInventory = newInventory;
+                }
+            }
             
-            // Either data didn't change and contains the position where the dragging started,
-            // or it now contains the new position.
             UpdateVisuals();
+        }
+
+
+        [CanBeNull]
+        private InventoryRenderer GetInventoryRendererBelow()
+        {
+            // Raycast all corners to check if they have the same inventory.
+            _rectTransform.GetWorldCorners(_rectCornersArray);
+            
+            foreach (Vector3 corner in _rectCornersArray)
+            {
+                InventorySlotsRenderer current = Utilities.GetFirstComponentBelow<InventorySlotsRenderer>(corner);
+
+                if (current != null)
+                    return current.InventoryRenderer;
+            }
+
+            return null;
+        }
+
+
+        [CanBeNull]
+        private Inventory GetInventoryBelow() => _belowRenderer == null ? null : _belowRenderer.TargetInventory;
+
+
+        private Vector2 GetAnchoredPositionRelativeToRect(RectTransform relativeTo)
+        {
+            Vector2 screenP = RectTransformUtility.WorldToScreenPoint(null, _rectTransform.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(relativeTo, screenP, null, out Vector2 relativePoint);
+
+            return relativePoint;
         }
     }
 }

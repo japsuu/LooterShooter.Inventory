@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace InventorySystem.Clothing
 {
+    [CreateAssetMenu(fileName = "Clothes_", menuName = "Items/New Clothing Item", order = 0)]
     public class ClothingItem : ItemData
     {
         [Header("Clothing Settings")]

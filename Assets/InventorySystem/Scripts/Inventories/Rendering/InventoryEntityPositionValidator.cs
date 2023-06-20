@@ -15,7 +15,6 @@ namespace InventorySystem.Inventories.Rendering
         
         private RectTransform _rectTransform;
         private Image _validatorImage;
-        private InventoryEntity _targetEntity;
 
 
         private void Awake()
@@ -43,15 +42,14 @@ namespace InventorySystem.Inventories.Rendering
         public void Hide() => _validatorImage.enabled = false;
 
 
-        public void SetTargetEntity(InventoryEntity entity, float width, float height)
+        public void UpdateSize(float width, float height)
         {
-            _targetEntity = entity;
             _validatorImage.enabled = true;
-            _rectTransform.SetParent(_targetEntity.transform.parent);
             
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             
+            //_rectTransform.SetParent(entity.transform.parent);
             // int targetIndex = entity.RectTransform.GetSiblingIndex() - 1;
             // if(targetIndex < 1)
             //     entity.RectTransform.SetSiblingIndex(targetIndex + 2);
@@ -60,12 +58,13 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void UpdateAnchoredPosition(Vector2 anchoredPosition, InventoryEntity entity)
+        public void UpdatePosition(Vector2 anchoredPosition, InventoryEntity entity)
         {
             _validatorImage.enabled = true;
-            _rectTransform.anchoredPosition = anchoredPosition;
+            //_rectTransform.anchoredPosition = anchoredPosition;
+            _rectTransform.position = anchoredPosition;
 
-            bool isValidPosition = entity.GetInventoryBelowEntity().IsBoundsValid(entity.GetBounds(), entity.Data);
+            bool isValidPosition = entity.IsBoundsValid();
             _validatorImage.color = isValidPosition ? _validPositionColor : _invalidPositionColor;
         }
     }

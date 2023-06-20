@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using InventorySystem.Inventories.Items;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,25 +9,24 @@ namespace InventorySystem.Inventories.Rendering
     [RequireComponent(typeof(RectTransform))]
     public class InventoryRenderer : MonoBehaviour
     {
-        // Singleton. TODO: Remove. Add a InventoryManager with a static inventory to Rendering root. Methods: AddStartingInventory, AddClothes etc.
-        public static InventoryRenderer Singleton;
-
         // Serialized fields.
+        [SerializeField] private TMP_Text _inventoryNameText;
         [SerializeField] private LayoutElement _inventoryLayoutElement;
         [SerializeField] private RectTransform _entityRootTransform;
-        [SerializeField] private Image _slotsImage;
+        [SerializeField] private InventorySlotsRenderer _slotsRenderer;
         [SerializeField] private InventoryEntity _entityPrefab;
         [SerializeField] private float _slotSize = 100f;
 
         // Private fields.
-        private Inventory _renderingInventory;
         private Dictionary<InventoryItem, InventoryEntity> _entities;
         
+        // Public fields.
+        public Inventory TargetInventory { get; private set; }
+        public RectTransform EntityRootTransform => _entityRootTransform;
+
 
         private void Awake()
         {
-            Singleton = this;
-
             _entities = new();
         }
 
@@ -41,65 +41,55 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void RenderInventory(Inventory inventory)
+        public void RenderInventory(Inventory inventory, string inventoryName)
         {
-            if (_renderingInventory != null)
+            if (TargetInventory != null)
                 StopRenderInventory();
+
+            _inventoryNameText.text = inventoryName;
             
-            StartRenderInventory(inventory);
-        }
+            TargetInventory = inventory;
 
-
-        private void StartRenderInventory(Inventory inventory)
-        {
-            _renderingInventory = inventory;
-            _renderingInventory.AddedItem += OnAddedItem;
-            _renderingInventory.RemovedItem += OnRemovedItem;
-
-            float width = _renderingInventory.Bounds.Width * _slotSize;
-            float height = _renderingInventory.Bounds.Height * _slotSize;
+            float width = TargetInventory.Bounds.Width * _slotSize;
+            float height = TargetInventory.Bounds.Height * _slotSize;
             
             // Resize the grid.
             _inventoryLayoutElement.minWidth = width;
             _inventoryLayoutElement.minHeight = height;
             
             // Resize the slots image.
-            _slotsImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
-            _slotsImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
+            _slotsRenderer.Initialize(this, width, height);
 
-            foreach (InventoryItem item in _renderingInventory.GetItems())
+            foreach (InventoryItem item in TargetInventory.GetItems())
             {
                 CreateNewEntityForItem(item);
             }
         }
 
 
-        private void StopRenderInventory()
-        {
-            _renderingInventory.AddedItem -= OnAddedItem;
-            _renderingInventory.RemovedItem -= OnRemovedItem;
-
-            RemoveAllEntities();
-        }
-
-
-        private void CreateNewEntityForItem(InventoryItem item)
+        public void CreateNewEntityForItem(InventoryItem item)
         {
             InventoryEntity entity = Instantiate(_entityPrefab, _entityRootTransform);
 
-            entity.Initialize(item, _renderingInventory);
+            entity.Initialize(item, TargetInventory);
             
             _entities.Add(item, entity);
         }
 
 
-        private void RemoveEntityOfItem(InventoryItem item)
+        public void RemoveEntityOfItem(InventoryItem item)
         {
             if (_entities.Remove(item, out InventoryEntity entity))
             {
                 if(entity != null)
                     Destroy(entity.gameObject);
             }
+        }
+
+
+        private void StopRenderInventory()
+        {
+            RemoveAllEntities();
         }
 
 
@@ -113,11 +103,5 @@ namespace InventorySystem.Inventories.Rendering
             
             _entities.Clear();
         }
-
-
-        private void OnAddedItem(InventoryItem item) => CreateNewEntityForItem(item);
-
-
-        private void OnRemovedItem(InventoryItem item) => RemoveEntityOfItem(item);
     }
 }
