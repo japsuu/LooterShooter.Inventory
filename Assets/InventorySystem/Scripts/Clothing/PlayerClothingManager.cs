@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using InventorySystem.Inventories;
 using UnityEngine;
 
@@ -23,7 +24,11 @@ namespace InventorySystem.Clothing
         {
             _playerInventoryManager = GetComponent<PlayerInventoryManager>();
             _equippedClothingItems = new();
+        }
 
+
+        private void Start()
+        {
             // Equip starting clothes.
             foreach (ClothingItem clothes in _startingClothes)
             {

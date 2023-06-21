@@ -6,7 +6,7 @@ namespace InventorySystem.Inventories
 {
     public static class Utilities
     {
-        public const float INVENTORY_SLOT_SIZE = 100f;
+        public const float INVENTORY_SLOT_SIZE = 50f;
         
         
         public static Vector2Int GetInventoryGridPosition(Vector2 position) //BUG: RelativeToRect(rect)

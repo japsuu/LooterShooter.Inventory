@@ -15,7 +15,6 @@ namespace InventorySystem.Inventories.Rendering
         [SerializeField] private RectTransform _entityRootTransform;
         [SerializeField] private InventorySlotsRenderer _slotsRenderer;
         [SerializeField] private InventoryEntity _entityPrefab;
-        [SerializeField] private float _slotSize = 100f;
 
         // Private fields.
         private Dictionary<InventoryItem, InventoryEntity> _entities;
@@ -50,8 +49,8 @@ namespace InventorySystem.Inventories.Rendering
             
             TargetInventory = inventory;
 
-            float width = TargetInventory.Bounds.Width * _slotSize;
-            float height = TargetInventory.Bounds.Height * _slotSize;
+            float width = TargetInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
+            float height = TargetInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
             
             // Resize the grid.
             _inventoryLayoutElement.minWidth = width;

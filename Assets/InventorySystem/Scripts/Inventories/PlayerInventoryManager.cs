@@ -19,8 +19,8 @@ namespace InventorySystem.Inventories
         
         [Header("Base Inventory")]
         [SerializeField] private string _baseInventoryName = "Pockets";
-        [SerializeField, Min(1)] private int _baseInventoryWidth = 8;
-        [SerializeField, Min(1)] private int _baseInventoryHeight = 4;
+        [SerializeField, Min(0)] private int _baseInventoryWidth = 8;
+        [SerializeField, Min(0)] private int _baseInventoryHeight = 4;
         
         private Dictionary<string, Inventory> _inventories;
         private Dictionary<Inventory, InventoryRenderer> _renderers;
@@ -33,17 +33,14 @@ namespace InventorySystem.Inventories
             
             _inventories = new();
             _renderers = new();
-        }
-
-
-        private void Start()
-        {
+            
             // Destroy all children >:).
             for (int i = _inventoryRenderersRoot.childCount - 1; i >= 0; i--)
             {
                 Destroy(_inventoryRenderersRoot.GetChild(i).gameObject);
             }
             
+            // Add base inventory
             AddInventory(_baseInventoryName, _baseInventoryWidth, _baseInventoryHeight);
         }
 
@@ -73,6 +70,8 @@ namespace InventorySystem.Inventories
             
             _inventories.Add(inventoryName, inventory);
             _renderers.Add(inventory, inventoryRenderer);
+            
+            print($"added {inventoryName} ({width}x{height})");
         }
 
 
