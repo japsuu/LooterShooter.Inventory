@@ -1,4 +1,5 @@
 ﻿using InventorySystem.Inventories.Items;
+using InventorySystem.Inventories.Spatial;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -17,11 +18,11 @@ namespace InventorySystem.Inventories.Rendering
 
         // Private fields: Initialization.
         private InventoryItem _data;
-        private Inventory _containingInventory;
+        private IItemDropTarget _containingDropTarget;
         private RectTransform _rectTransform;
         private CanvasGroup _draggingCanvasGroup;
         // Private fields: Runtime.
-        private InventoryRenderer _belowRenderer;
+        private IItemDropTarget _belowDropTarget;
         private Canvas _temporaryOverrideCanvas;
         private Vector2Int _position;
         private ItemRotation _rotation;
@@ -61,9 +62,9 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void Initialize(InventoryItem item, Inventory inventory)
+        public void Initialize(InventoryItem item, IItemDropTarget containingDropTarget)
         {
-            _containingInventory = inventory;
+            _containingDropTarget = containingDropTarget;
             _data = item;
             
             _itemImage.sprite = _data.Item.Sprite;
@@ -93,10 +94,10 @@ namespace InventorySystem.Inventories.Rendering
 
         public bool IsBoundsValid()
         {
-            if (_belowRenderer == null)
+            if (_belowDropTarget == null)
                 return false;
             
-            return _belowRenderer.TargetInventory.IsBoundsValid(GetBounds(_belowRenderer.EntityRootTransform), _data);
+            return _belowDropTarget.AcceptsItem(_data, GetBounds(_belowDropTarget.RectTransform));
         }
 
 
@@ -219,7 +220,7 @@ namespace InventorySystem.Inventories.Rendering
             Vector2 offset = currentMousePosition - _dragStartCursorPosition;
             Vector2 targetObjectPosition = _dragStartObjectPosition + offset;
             _rectTransform.position = targetObjectPosition;
-            _belowRenderer = GetInventoryRendererBelow();
+            _belowDropTarget = GetDropTargetBelow();
             UpdateValidatorPosition();
         }
 
@@ -247,11 +248,11 @@ namespace InventorySystem.Inventories.Rendering
 
         private void UpdateValidatorPosition()
         {
-            if (_belowRenderer != null)
+            if (_belowDropTarget != null)
             {
-                Vector2 relativeAnchoredPos = GetAnchoredPositionRelativeToRect(_belowRenderer.EntityRootTransform);
+                Vector2 relativeAnchoredPos = GetAnchoredPositionRelativeToRect(_belowDropTarget.RectTransform);
                 Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeAnchoredPos);
-                Vector2 screenSpacePos = _belowRenderer.EntityRootTransform.GetScreenSpacePosition(snappedPos);
+                Vector2 screenSpacePos = _belowDropTarget.RectTransform.GetScreenSpacePosition(snappedPos);
 
                 InventoryEntityPositionValidator.Singleton.UpdatePosition(screenSpacePos, this);
             }
@@ -266,16 +267,15 @@ namespace InventorySystem.Inventories.Rendering
 
         private void RequestMove()
         {
-            if (_belowRenderer != null)
+            if (_belowDropTarget != null)
             {
-                Vector2 relativeAnchoredPosition = GetAnchoredPositionRelativeToRect(_belowRenderer.EntityRootTransform);
+                Vector2 relativeAnchoredPosition = GetAnchoredPositionRelativeToRect(_belowDropTarget.RectTransform);
                 Vector2Int newPosition = Utilities.GetInventoryGridPosition(relativeAnchoredPosition);
                 // print($"Request:{_position} -> {newPosition}");
 
-                Inventory newInventory = GetInventoryBelow();
-                if (_containingInventory.TryMoveItem(_position, newPosition, _rotation, newInventory))
+                if (_belowDropTarget.TryReceiveItem(_containingDropTarget, _position, newPosition, _rotation))
                 {
-                    _containingInventory = newInventory;
+                    _containingDropTarget = _belowDropTarget;
                 }
             }
             
@@ -284,25 +284,25 @@ namespace InventorySystem.Inventories.Rendering
 
 
         [CanBeNull]
-        private InventoryRenderer GetInventoryRendererBelow()
+        private IItemDropTarget GetDropTargetBelow()
         {
             // Raycast all corners to check if they have the same inventory.
             _rectTransform.GetWorldCorners(_rectCornersArray);
             
             foreach (Vector3 corner in _rectCornersArray)
             {
-                InventorySlotsRenderer current = Utilities.GetFirstComponentBelow<InventorySlotsRenderer>(corner);
+                IItemDropTarget current = Utilities.GetFirstComponentBelow<IItemDropTarget>(corner);
 
                 if (current != null)
-                    return current.InventoryRenderer;
+                    return current;
             }
 
             return null;
         }
 
 
-        [CanBeNull]
-        private Inventory GetInventoryBelow() => _belowRenderer == null ? null : _belowRenderer.TargetInventory;
+        //[CanBeNull]
+        //private SpatialInventory GetInventoryBelow() => _belowRenderer == null ? null : _belowRenderer.TargetSpatialInventory;
 
 
         private Vector2 GetAnchoredPositionRelativeToRect(RectTransform relativeTo)

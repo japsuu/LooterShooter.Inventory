@@ -2,19 +2,22 @@
 using System.Linq;
 using InventorySystem.Inventories.Items;
 using InventorySystem.Inventories.Rendering;
+using InventorySystem.Inventories.Spatial;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace InventorySystem.Inventories
 {
     /// <summary>
-    /// Controls multiple child <see cref="Inventory"/>s.TODO: Split to event based renderer.
+    /// Controls multiple child <see cref="SpatialInventory"/>s.TODO: Split to event based renderer.
     /// </summary>
     public class PlayerInventoryManager : MonoBehaviour
     {
         public static PlayerInventoryManager Singleton;
         
+        [FormerlySerializedAs("_inventoryRendererPrefab")]
         [Header("References")]
-        [SerializeField] private InventoryRenderer _inventoryRendererPrefab;
+        [SerializeField] private SpatialInventoryRenderer _spatialInventoryRendererPrefab;
         [SerializeField] private RectTransform _inventoryRenderersRoot;
         
         [Header("Base Inventory")]
@@ -22,8 +25,8 @@ namespace InventorySystem.Inventories
         [SerializeField, Min(0)] private int _baseInventoryWidth = 8;
         [SerializeField, Min(0)] private int _baseInventoryHeight = 4;
         
-        private Dictionary<string, Inventory> _inventories;
-        private Dictionary<Inventory, InventoryRenderer> _renderers;
+        private Dictionary<string, SpatialInventory> _inventories;
+        private Dictionary<SpatialInventory, SpatialInventoryRenderer> _renderers;
 
 
         private void Awake()
@@ -59,44 +62,44 @@ namespace InventorySystem.Inventories
             if(width < 1 || height < 1)
                 return;
             
-            Inventory inventory = new(width, height);
+            SpatialInventory spatialInventory = new(width, height);
             
-            InventoryRenderer inventoryRenderer = Instantiate(_inventoryRendererPrefab, _inventoryRenderersRoot);
-            inventoryRenderer.RenderInventory(inventory, inventoryName);
+            SpatialInventoryRenderer spatialInventoryRenderer = Instantiate(_spatialInventoryRendererPrefab, _inventoryRenderersRoot);
+            spatialInventoryRenderer.RenderInventory(spatialInventory, inventoryName);
             
-            inventory.AddedItem += OnAddedItem;
-            inventory.MovedItem += OnMovedItem;
-            inventory.RemovedItem += OnRemovedItem;
+            spatialInventory.AddedItem += OnAddedItem;
+            spatialInventory.MovedItem += OnMovedItem;
+            spatialInventory.RemovedItem += OnRemovedItem;
             
-            _inventories.Add(inventoryName, inventory);
-            _renderers.Add(inventory, inventoryRenderer);
+            _inventories.Add(inventoryName, spatialInventory);
+            _renderers.Add(spatialInventory, spatialInventoryRenderer);
             
             print($"added {inventoryName} ({width}x{height})");
         }
 
 
-        private void OnAddedItem(Inventory inventory, InventoryItem item)
+        private void OnAddedItem(SpatialInventory spatialInventory, InventoryItem item)
         {
-            if (_renderers.TryGetValue(inventory, out InventoryRenderer inventoryRenderer))
+            if (_renderers.TryGetValue(spatialInventory, out SpatialInventoryRenderer inventoryRenderer))
             {
                 inventoryRenderer.CreateNewEntityForItem(item);
             }
         }
 
 
-        private void OnRemovedItem(Inventory inventory, InventoryItem item)
+        private void OnRemovedItem(SpatialInventory spatialInventory, InventoryItem item)
         {
-            if (_renderers.TryGetValue(inventory, out InventoryRenderer inventoryRenderer))
+            if (_renderers.TryGetValue(spatialInventory, out SpatialInventoryRenderer inventoryRenderer))
             {
                 inventoryRenderer.RemoveEntityOfItem(item);
             }
         }
 
 
-        private void OnMovedItem(Inventory oldInventory, Inventory newInventory, InventoryItem item, Vector2Int oldPos, Vector2Int newPos)
+        private void OnMovedItem(SpatialInventory oldSpatialInventory, SpatialInventory newSpatialInventory, InventoryItem item, Vector2Int oldPos, Vector2Int newPos)
         {
-            if (_renderers.TryGetValue(oldInventory, out InventoryRenderer oldInventoryRenderer) &&
-                _renderers.TryGetValue(newInventory, out InventoryRenderer newInventoryRenderer))
+            if (_renderers.TryGetValue(oldSpatialInventory, out SpatialInventoryRenderer oldInventoryRenderer) &&
+                _renderers.TryGetValue(newSpatialInventory, out SpatialInventoryRenderer newInventoryRenderer))
             {
                 oldInventoryRenderer.RemoveEntityOfItem(item);
                 newInventoryRenderer.CreateNewEntityForItem(item);
@@ -106,13 +109,13 @@ namespace InventorySystem.Inventories
 
         public void RemoveInventory(string inventoryName)
         {
-            if (_inventories.Remove(inventoryName, out Inventory inventory))
+            if (_inventories.Remove(inventoryName, out SpatialInventory inventory))
             {
                 inventory.AddedItem -= OnAddedItem;
                 inventory.MovedItem -= OnMovedItem;
                 inventory.RemovedItem -= OnRemovedItem;
                 
-                if (_renderers.Remove(inventory, out InventoryRenderer inventoryRenderer))
+                if (_renderers.Remove(inventory, out SpatialInventoryRenderer inventoryRenderer))
                 {
                     Destroy(inventoryRenderer.gameObject);
                 }
@@ -125,9 +128,9 @@ namespace InventorySystem.Inventories
 
         public bool TryAddItem(ItemData itemData)
         {
-            foreach (Inventory inventory in _inventories.Values)
+            foreach (SpatialInventory inventory in _inventories.Values)
             {
-                if (inventory.TryAddItem(itemData))
+                if (inventory.TryAddItems(itemData))
                     return true;
             }
 
@@ -138,7 +141,7 @@ namespace InventorySystem.Inventories
         public int TryRemoveItems(ItemData item, int count)
         {
             int removedInTotal = 0;
-            foreach (Inventory inventory in _inventories.Values)
+            foreach (SpatialInventory inventory in _inventories.Values)
             {
                 removedInTotal += inventory.TryRemoveItems(item, count);
 

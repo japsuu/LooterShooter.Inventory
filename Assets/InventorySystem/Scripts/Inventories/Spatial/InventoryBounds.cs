@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace InventorySystem.Inventories
+namespace InventorySystem.Inventories.Spatial
 {
     /// <summary>
     /// Axis-Aligned-Bounding-Box (AABB).

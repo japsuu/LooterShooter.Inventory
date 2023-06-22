@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using InventorySystem.Inventories.Items;
+using InventorySystem.Inventories.Spatial;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +8,7 @@ using UnityEngine.UI;
 namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
-    public class InventoryRenderer : MonoBehaviour
+    public class SpatialInventoryRenderer : MonoBehaviour
     {
         // Serialized fields.
         [SerializeField] private TMP_Text _inventoryNameText;
@@ -20,7 +21,7 @@ namespace InventorySystem.Inventories.Rendering
         private Dictionary<InventoryItem, InventoryEntity> _entities;
         
         // Public fields.
-        public Inventory TargetInventory { get; private set; }
+        public SpatialInventory TargetSpatialInventory { get; private set; }
         public RectTransform EntityRootTransform => _entityRootTransform;
 
 
@@ -40,17 +41,17 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void RenderInventory(Inventory inventory, string inventoryName)
+        public void RenderInventory(SpatialInventory spatialInventory, string inventoryName)
         {
-            if (TargetInventory != null)
+            if (TargetSpatialInventory != null)
                 StopRenderInventory();
 
             _inventoryNameText.text = inventoryName;
             
-            TargetInventory = inventory;
+            TargetSpatialInventory = spatialInventory;
 
-            float width = TargetInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
-            float height = TargetInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
+            float width = TargetSpatialInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
+            float height = TargetSpatialInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
             
             // Resize the grid.
             _inventoryLayoutElement.minWidth = width;
@@ -59,7 +60,7 @@ namespace InventorySystem.Inventories.Rendering
             // Resize the slots image.
             _slotsRenderer.Initialize(this, width, height);
 
-            foreach (InventoryItem item in TargetInventory.GetItems())
+            foreach (InventoryItem item in TargetSpatialInventory.GetItems())
             {
                 CreateNewEntityForItem(item);
             }
@@ -70,7 +71,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             InventoryEntity entity = Instantiate(_entityPrefab, _entityRootTransform);
 
-            entity.Initialize(item, TargetInventory);
+            entity.Initialize(item, _slotsRenderer);
             
             _entities.Add(item, entity);
         }

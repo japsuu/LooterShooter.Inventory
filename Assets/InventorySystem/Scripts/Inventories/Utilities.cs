@@ -25,7 +25,7 @@ namespace InventorySystem.Inventories
         }
 
 
-        public static T GetFirstComponentBelow<T>(Vector2 screenSpacePosition) where T : MonoBehaviour
+        public static T GetFirstComponentBelow<T>(Vector2 screenSpacePosition) /*where T : MonoBehaviour*/
         {
             PointerEventData pointerData = new(EventSystem.current)
             {

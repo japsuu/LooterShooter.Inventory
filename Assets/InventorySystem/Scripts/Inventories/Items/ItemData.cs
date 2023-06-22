@@ -1,5 +1,4 @@
-﻿using InventorySystem.EquipmentSlots;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace InventorySystem.Inventories.Items
@@ -13,7 +12,6 @@ namespace InventorySystem.Inventories.Items
         [SerializeField] private string _itemName = "MissingYes";
         [SerializeField] private string _itemDescription = "Missing Description";
         [FormerlySerializedAs("itemSprite")] [SerializeField] private Sprite _itemSprite;
-        [SerializeField] private ItemType _itemType = ItemType.Nothing;
         [SerializeField, Min(1)] private int _inventorySizeX = 1;
         [SerializeField, Min(1)] private int _inventorySizeY = 1;
 
