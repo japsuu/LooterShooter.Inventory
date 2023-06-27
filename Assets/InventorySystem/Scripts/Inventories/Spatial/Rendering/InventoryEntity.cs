@@ -33,6 +33,8 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         private bool _isUserDragging;
         private readonly Vector3[] _rectCornersArray = new Vector3[4];
 
+        public InventoryEntityData Data => _data;
+
 
         private void Awake()
         {
