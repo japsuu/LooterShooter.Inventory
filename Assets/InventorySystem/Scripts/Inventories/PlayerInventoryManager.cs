@@ -3,6 +3,7 @@ using System.Linq;
 using InventorySystem.Inventories.Items;
 using InventorySystem.Inventories.Rendering;
 using InventorySystem.Inventories.Spatial;
+using InventorySystem.Inventories.Spatial.Rendering;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -78,31 +79,31 @@ namespace InventorySystem.Inventories
         }
 
 
-        private void OnAddedItem(SpatialInventory spatialInventory, InventoryItem item)
+        private void OnAddedItem(SpatialInventory spatialInventory, InventoryData data)
         {
             if (_renderers.TryGetValue(spatialInventory, out SpatialInventoryRenderer inventoryRenderer))
             {
-                inventoryRenderer.CreateNewEntityForItem(item);
+                inventoryRenderer.CreateNewEntityForItem(data);
             }
         }
 
 
-        private void OnRemovedItem(SpatialInventory spatialInventory, InventoryItem item)
+        private void OnRemovedItem(SpatialInventory spatialInventory, InventoryData data)
         {
             if (_renderers.TryGetValue(spatialInventory, out SpatialInventoryRenderer inventoryRenderer))
             {
-                inventoryRenderer.RemoveEntityOfItem(item);
+                inventoryRenderer.RemoveEntityOfItem(data);
             }
         }
 
 
-        private void OnMovedItem(SpatialInventory oldSpatialInventory, SpatialInventory newSpatialInventory, InventoryItem item, Vector2Int oldPos, Vector2Int newPos)
+        private void OnMovedItem(SpatialInventory oldSpatialInventory, SpatialInventory newSpatialInventory, InventoryData data, Vector2Int oldPos, Vector2Int newPos)
         {
             if (_renderers.TryGetValue(oldSpatialInventory, out SpatialInventoryRenderer oldInventoryRenderer) &&
                 _renderers.TryGetValue(newSpatialInventory, out SpatialInventoryRenderer newInventoryRenderer))
             {
-                oldInventoryRenderer.RemoveEntityOfItem(item);
-                newInventoryRenderer.CreateNewEntityForItem(item);
+                oldInventoryRenderer.RemoveEntityOfItem(data);
+                newInventoryRenderer.CreateNewEntityForItem(data);
             }
         }
 
@@ -130,7 +131,7 @@ namespace InventorySystem.Inventories
         {
             foreach (SpatialInventory inventory in _inventories.Values)
             {
-                if (inventory.TryAddItems(itemData))
+                if (inventory.TryAddItem(itemData))
                     return true;
             }
 

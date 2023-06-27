@@ -2,7 +2,7 @@
 
 namespace InventorySystem.EquipmentSlots
 {
-    public class SelectableSlot : ItemSlot
+    public class SelectableSlot : InventoryEntitySlot
     {
         [Tooltip("Key used to select this slot. Leave at 'none' to disable selection.")]
         [SerializeField] private KeyCode _selectKey = KeyCode.None;

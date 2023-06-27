@@ -1,10 +1,10 @@
 ﻿namespace InventorySystem.Inventories.Items
 {
-    public class InventoryItem
+    public class InventoryData
     {
         public readonly ItemData Item;
         
-        public InventoryItem(ItemData item)
+        public InventoryData(ItemData item)
         {
             Item = item;
         }

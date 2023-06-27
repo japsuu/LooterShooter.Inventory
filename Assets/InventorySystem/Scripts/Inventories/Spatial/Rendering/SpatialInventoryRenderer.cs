@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using InventorySystem.Inventories.Items;
-using InventorySystem.Inventories.Spatial;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace InventorySystem.Inventories.Rendering
+namespace InventorySystem.Inventories.Spatial.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
     public class SpatialInventoryRenderer : MonoBehaviour
@@ -18,7 +17,7 @@ namespace InventorySystem.Inventories.Rendering
         [SerializeField] private InventoryEntity _entityPrefab;
 
         // Private fields.
-        private Dictionary<InventoryItem, InventoryEntity> _entities;
+        private Dictionary<InventoryData, InventoryEntity> _entities;
         
         // Public fields.
         public SpatialInventory TargetSpatialInventory { get; private set; }
@@ -60,26 +59,26 @@ namespace InventorySystem.Inventories.Rendering
             // Resize the slots image.
             _slotsRenderer.Initialize(this, width, height);
 
-            foreach (InventoryItem item in TargetSpatialInventory.GetItems())
+            foreach (InventoryData item in TargetSpatialInventory.GetItems())
             {
                 CreateNewEntityForItem(item);
             }
         }
 
 
-        public void CreateNewEntityForItem(InventoryItem item)
+        public void CreateNewEntityForItem(InventoryData data)
         {
             InventoryEntity entity = Instantiate(_entityPrefab, _entityRootTransform);
 
-            entity.Initialize(item, _slotsRenderer);
+            entity.Initialize(data, _slotsRenderer);
             
-            _entities.Add(item, entity);
+            _entities.Add(data, entity);
         }
 
 
-        public void RemoveEntityOfItem(InventoryItem item)
+        public void RemoveEntityOfItem(InventoryData data)
         {
-            if (_entities.Remove(item, out InventoryEntity entity))
+            if (_entities.Remove(data, out InventoryEntity entity))
             {
                 if(entity != null)
                     Destroy(entity.gameObject);
@@ -95,7 +94,7 @@ namespace InventorySystem.Inventories.Rendering
 
         private void RemoveAllEntities()
         {
-            foreach (InventoryItem item in _entities.Keys)
+            foreach (InventoryData item in _entities.Keys)
             {
                 if(_entities[item] != null)
                     Destroy(_entities[item].gameObject);

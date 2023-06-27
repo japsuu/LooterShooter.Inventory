@@ -1,11 +1,12 @@
 ﻿using InventorySystem.Inventories.Items;
-using InventorySystem.Inventories.Spatial;
+using InventorySystem.Inventories.Rendering;
+using InventorySystem.Inventories.Spatial.Items;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace InventorySystem.Inventories.Rendering
+namespace InventorySystem.Inventories.Spatial.Rendering
 {
     [RequireComponent(typeof(CanvasGroup))]
     [RequireComponent(typeof(RectTransform))]
@@ -17,12 +18,12 @@ namespace InventorySystem.Inventories.Rendering
         [SerializeField] private float _rotationSpeed = 20f;
 
         // Private fields: Initialization.
-        private InventoryItem _data;
-        private IItemDropTarget _containingDropTarget;
+        private InventoryEntityData _data;
+        private IInventoryEntityDropTarget _containingDropTarget;
         private RectTransform _rectTransform;
         private CanvasGroup _draggingCanvasGroup;
         // Private fields: Runtime.
-        private IItemDropTarget _belowDropTarget;
+        private IInventoryEntityDropTarget _belowDropTarget;
         private Canvas _temporaryOverrideCanvas;
         private Vector2Int _position;
         private ItemRotation _rotation;
@@ -62,12 +63,13 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void Initialize(InventoryItem item, IItemDropTarget containingDropTarget)
+        public void Initialize(ItemData item, IInventoryEntityDropTarget containingDropTarget)
         {
+            _data = new InventoryEntityData(item);
             _containingDropTarget = containingDropTarget;
-            _data = item;
             
             _itemImage.sprite = _data.Item.Sprite;
+            
             
             UpdateVisuals();
 
@@ -76,7 +78,7 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        private InventoryBounds GetBounds(RectTransform positionRelativeTo)
+        public InventoryBounds GetBounds(RectTransform rectPositionRelativeTo)
         {
             bool isRotated = _rotation.ShouldFlipWidthAndHeight();
             int itemSizeX = _data.Item.InventorySizeX;
@@ -85,7 +87,7 @@ namespace InventorySystem.Inventories.Rendering
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
 
             // Get the top-left corner position.
-            Vector2 topLeftCorner = GetAnchoredPositionRelativeToRect(positionRelativeTo);
+            Vector2 topLeftCorner = GetAnchoredPositionRelativeToRect(rectPositionRelativeTo);
             
             InventoryBounds bounds = new(Utilities.GetInventoryGridPosition(topLeftCorner), itemWidth, itemHeight);
             return bounds;
@@ -97,7 +99,7 @@ namespace InventorySystem.Inventories.Rendering
             if (_belowDropTarget == null)
                 return false;
             
-            return _belowDropTarget.AcceptsItem(_data, GetBounds(_belowDropTarget.RectTransform));
+            return _belowDropTarget.AcceptsEntity(this);
         }
 
 
@@ -105,7 +107,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             UpdateRotation(_data.Rotation);
             UpdateSize();
-            UpdatePosition();
+            UpdatePosition(_data.Position);
         }
 
 
@@ -175,10 +177,10 @@ namespace InventorySystem.Inventories.Rendering
             RectTransform.pivot = originalPivot;*/
         }
 
-        private void UpdatePosition()
+        private void UpdatePosition(Vector2Int newPosition)
         {
             // Set the new position.
-            _position = _data.Position;
+            _position = newPosition;
 
             // Move to new position.
             float posX = _position.x * Utilities.INVENTORY_SLOT_SIZE;
@@ -284,14 +286,14 @@ namespace InventorySystem.Inventories.Rendering
 
 
         [CanBeNull]
-        private IItemDropTarget GetDropTargetBelow()
+        private IInventoryEntityDropTarget GetDropTargetBelow()
         {
             // Raycast all corners to check if they have the same inventory.
             _rectTransform.GetWorldCorners(_rectCornersArray);
             
             foreach (Vector3 corner in _rectCornersArray)
             {
-                IItemDropTarget current = Utilities.GetFirstComponentBelow<IItemDropTarget>(corner);
+                IInventoryEntityDropTarget current = Utilities.GetFirstComponentBelow<IInventoryEntityDropTarget>(corner);
 
                 if (current != null)
                     return current;

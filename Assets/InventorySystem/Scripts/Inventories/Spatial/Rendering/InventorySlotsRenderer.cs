@@ -1,12 +1,13 @@
 ﻿using InventorySystem.Inventories.Items;
-using InventorySystem.Inventories.Spatial;
+using InventorySystem.Inventories.Rendering;
+using InventorySystem.Inventories.Spatial.Items;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace InventorySystem.Inventories.Rendering
+namespace InventorySystem.Inventories.Spatial.Rendering
 {
     [RequireComponent(typeof(Image))]
-    public class InventorySlotsRenderer : MonoBehaviour, IItemDropTarget
+    public class InventorySlotsRenderer : MonoBehaviour, IInventoryEntityDropTarget
     {
         private Image _slotsImage;
         private SpatialInventoryRenderer _inventoryRenderer;
@@ -28,15 +29,26 @@ namespace InventorySystem.Inventories.Rendering
             _slotsImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             _slotsImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
         }
-        
 
-        public bool AcceptsItem(InventoryItem item, InventoryBounds itemBounds)
+        public bool AcceptsEntity(InventoryEntity entity)
         {
-            return _inventoryRenderer.TargetSpatialInventory.IsBoundsValid(itemBounds, item);
+            return _inventoryRenderer.TargetSpatialInventory.IsBoundsValid(entity.GetBounds(), item);
         }
 
 
-        public bool TryReceiveItem(IItemDropTarget fromTarget, Vector2Int fromPosition, Vector2Int toPosition, ItemRotation toRotation)
+        public void OnEntityDropped(InventoryEntity entity)
+        {
+            throw new System.NotImplementedException();
+        }
+
+
+        public void OnEntityLifted(InventoryEntity entity)
+        {
+            throw new System.NotImplementedException();
+        }
+
+
+        public bool TryReceiveItem(IInventoryEntityDropTarget fromTarget, Vector2Int fromPosition, Vector2Int toPosition, ItemRotation toRotation)
         {
             return _inventoryRenderer.TargetSpatialInventory.TryMoveItem(fromPosition, toPosition, toRotation, fromTarget.Inventory);
         }

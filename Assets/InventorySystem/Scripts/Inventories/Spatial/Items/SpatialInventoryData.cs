@@ -1,10 +1,11 @@
-﻿using InventorySystem.Inventories.Spatial;
+﻿using InventorySystem.Inventories.Items;
 using UnityEngine;
 
-namespace InventorySystem.Inventories.Items
+namespace InventorySystem.Inventories.Spatial.Items
 {
-    public class SpatialInventoryItem : InventoryItem
+    public class SpatialInventoryData : InventoryData
     {
+        public int InventoryIndex;
         public Vector2Int Position { get; private set; }
         public ItemRotation Rotation { get; private set; }
         public int Width { get; private set; }
@@ -13,7 +14,7 @@ namespace InventorySystem.Inventories.Items
         public InventoryBounds Bounds { get; private set; }
 
 
-        public SpatialInventoryItem(ItemData item, InventoryBounds bounds, ItemRotation rotation) : base(item)
+        public SpatialInventoryData(ItemData item, InventoryBounds bounds, ItemRotation rotation) : base(item)
         {
             Bounds = bounds;
             Position = bounds.Position;
