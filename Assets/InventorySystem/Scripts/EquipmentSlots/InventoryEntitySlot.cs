@@ -12,7 +12,7 @@ namespace InventorySystem.EquipmentSlots
     /// An UI slot, that an InventoryEntity can be dropped on to.
     /// </summary>
     [RequireComponent(typeof(Image))]
-    public abstract class InventoryEntitySlot : MonoBehaviour, IInventoryEntityDropTarget
+    public abstract class InventoryEntitySlot : MonoBehaviour, InventoryItemReceiver
     {
         [SerializeField] private RectTransform _contentRectTransform;
         
@@ -32,21 +32,21 @@ namespace InventorySystem.EquipmentSlots
         }
 
 
-        public virtual bool AcceptsEntity(InventoryEntity entity)
+        public virtual bool AcceptsFloater(SpatialFloater floater)
         {
             // Return true if we have a matching restriction or there is no restrictions.
             return _itemTypeRestrictions.Length < 1 ||
-                   _itemTypeRestrictions.Any(restriction => restriction == entity.Data.Item.Type);
+                   _itemTypeRestrictions.Any(restriction => restriction == floater.FloaterData.InventoryItem.Type);
         }
 
 
-        public void OnEntityDropped(InventoryEntity entity)
+        public void OnEntityDropped(SpatialFloater floater)
         {
             throw new System.NotImplementedException();
         }
 
 
-        public void OnEntityLifted(InventoryEntity entity)
+        public void OnEntityLifted(SpatialFloater floater)
         {
             throw new System.NotImplementedException();
         }

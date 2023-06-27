@@ -5,9 +5,9 @@ namespace InventorySystem.Inventories.Spatial.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
     [RequireComponent(typeof(Image))]
-    public class InventoryEntityPositionValidator : MonoBehaviour
+    public class SpatialInventoryFloaterPositionValidator : MonoBehaviour
     {
-        public static InventoryEntityPositionValidator Singleton;
+        public static SpatialInventoryFloaterPositionValidator Singleton;
         
         [SerializeField] private Color _validPositionColor = new Color(0f, 1f, 0f, 0.4f);
         [SerializeField] private Color _invalidPositionColor = new Color(1f, 0f, 0f, 0.4f);
@@ -20,7 +20,7 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         {
             if (Singleton != null)
             {
-                Debug.LogError($"Multiple {nameof(InventoryEntityPositionValidator)} in scene!");
+                Debug.LogError($"Multiple {nameof(SpatialInventoryFloaterPositionValidator)} in scene!");
                 return;
             }
 
@@ -57,13 +57,13 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         }
 
 
-        public void UpdatePosition(Vector2 anchoredPosition, InventoryEntity entity)
+        public void UpdatePosition(Vector2 anchoredPosition, SpatialFloater floater)
         {
             _validatorImage.enabled = true;
             //_rectTransform.anchoredPosition = anchoredPosition;
             _rectTransform.position = anchoredPosition;
 
-            bool isValidPosition = entity.IsBoundsValid();
+            bool isValidPosition = floater.IsBoundsValid();
             _validatorImage.color = isValidPosition ? _validPositionColor : _invalidPositionColor;
         }
     }

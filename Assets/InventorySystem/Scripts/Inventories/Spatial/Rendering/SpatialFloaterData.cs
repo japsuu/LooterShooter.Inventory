@@ -4,12 +4,12 @@ using UnityEngine;
 
 namespace InventorySystem.Inventories.Spatial.Rendering
 {
-    public class InventoryEntityData
+    public class SpatialFloaterData
     {
         /// <summary>
         /// Which item this entity represents.
         /// </summary>
-        public readonly ItemData Item;
+        public readonly InventoryItem<SpatialInventory> InventoryItem;
         
         /// <summary>
         /// Item's width in cells.
@@ -42,11 +42,11 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         public int SizeY { get; private set; }
 
 
-        public InventoryEntityData(ItemData item)
+        public SpatialFloaterData(InventoryItem<SpatialInventory> inventoryItem)
         {
-            Item = item;
-            ItemWidth = item.InventorySizeX;
-            ItemHeight = item.InventorySizeY;
+            InventoryItem = inventoryItem;
+            ItemWidth = inventoryItem.Item.InventorySizeX;
+            ItemHeight = inventoryItem.Item.InventorySizeY;
             
             UpdateScale();
         }

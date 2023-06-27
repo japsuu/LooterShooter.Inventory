@@ -10,16 +10,16 @@ namespace InventorySystem.Inventories.Spatial
     public class SpatialInventory : Inventory
     {
         // Events.
-        public event Action<SpatialInventory, InventoryData> AddedItem;
-        public event Action<SpatialInventory, SpatialInventory, InventoryData, Vector2Int, Vector2Int> MovedItem;
-        public event Action<SpatialInventory, InventoryData> RemovedItem;
+        public event Action<SpatialInventory, InventoryItem<>> AddedItem;
+        public event Action<SpatialInventory, Inventory, InventoryItem<>, Vector2Int, Vector2Int> MovedItem;
+        public event Action<SpatialInventory, InventoryItem<>> RemovedItem;
 
         // Constants.
         private const bool DEBUG_MODE = false;
         
         // Private fields.
         private readonly InventoryBounds _inventoryBounds;
-        private readonly SpatialInventoryData[] _contents;
+        private readonly SpatialInventoryItem[] _contents;
         
         // Public fields.
         public InventoryBounds Bounds => _inventoryBounds;
@@ -27,83 +27,51 @@ namespace InventorySystem.Inventories.Spatial
 
         public SpatialInventory(int width, int height)
         {
-            _contents = new SpatialInventoryData[width * height];
+            _contents = new SpatialInventoryItem[width * height];
             _inventoryBounds = new InventoryBounds(Vector2Int.zero, width, height);
         }
 
 
-        public override IEnumerable<InventoryData> GetItems() => _contents.Where(item => item != null);
+        public override IEnumerable<InventoryItem<>> GetItems() => _contents.Where(item => item != null);
 
 
         public override int ContainsItem(ItemData itemData) => _contents.Count(inventoryItem => inventoryItem.Item == itemData);
 
         
-        public override bool TryAddItem(ItemData itemData)
+        public override int TryAddItems(ItemData itemData, int count)
         {
-            SpatialInventoryData newData = CreateNewInventoryItem(itemData);
+            if(itemData == null)
+                return 0;
             
-            if (newData == null)
-            {
-                Debug("Not enough space in the inventory!");
-                return false;
-            }
-            
-            AddInventoryItem(newData);
+            int addCount = 0;
 
-            return true;
+            for (int i = 0; i < count; i++)
+            {
+                SpatialInventoryItem newData = CreateNewInventoryItem(itemData);
+            
+                if (newData == null)
+                {
+                    Debug("Not enough space in the inventory!");
+                    return addCount;
+                }
+            
+                AddInventoryItem(newData);
+                addCount++;
+            }
+
+            return addCount;
         }
 
         
-        public bool TryAddItem(ItemData itemData, Vector2Int position)
+        public override int TryRemoveItems(ItemData itemData, int count)
         {
-            //BUG: Implement
-            SpatialInventoryData newData = CreateNewInventoryItem(itemData);
-            
-            if (newData == null)
-            {
-                Debug("Not enough space in the inventory!");
-                return false;
-            }
-            
-            AddInventoryItem(newData);
-
-            return true;
-        }
-
-        
-        /// <returns>How many of <see cref="item"/> were removed.</returns>
-        public override int TryRemoveItems(ItemData item, int count)
-        {
-            if(item == null)
+            if(itemData == null)
                 return 0;
             
             int removedCount = 0;
-            foreach (SpatialInventoryData inventoryItem in _contents)
+            foreach (SpatialInventoryItem inventoryItem in _contents)
             {
-                if (inventoryItem.Item != item)
-                    continue;
-                
-                RemoveInventoryItem(inventoryItem);
-                removedCount++;
-                
-                if (removedCount == count)
-                    return removedCount;
-            }
-
-            return removedCount;
-        }
-
-        
-        public SpatialInventoryData TryRemoveItem(Vector2Int position)
-        {
-            //BUG: Implement
-            int removedCount = 0;
-            foreach (SpatialInventoryData inventoryItem in _contents)
-            {
-                if(item == null)
-                    continue;
-
-                if (inventoryItem.Item != item)
+                if (inventoryItem.Item != itemData)
                     continue;
                 
                 RemoveInventoryItem(inventoryItem);
@@ -117,18 +85,43 @@ namespace InventorySystem.Inventories.Spatial
         }
 
 
-        public bool TryMoveItem(Vector2Int oldPosition, Vector2Int newPosition, ItemRotation newRotation)
+        public bool TryMoveItem(Vector2Int oldPosition, Vector2Int newPosition, ItemRotation newRotation, Inventory newInventory)
         {
-            if (targetInventory == null)
-            {
-                Debug("TargetInventory was null!");
-                return false;
-            }
-
-            if (targetInventory is SpatialInventory spatialInventory)
+            // Special handling for spatial inventories.
+            if (newInventory is SpatialInventory spatialInventory)
                 return TryMoveToSpatialInventory(oldPosition, newPosition, newRotation, spatialInventory);
 
-            //TODO: Handle non-spatial inventory
+            return TryMoveToInventory(oldPosition, newInventory);
+        }
+
+
+        private bool TryMoveToInventory(Vector2Int oldPosition, Inventory targetInventory)
+        {
+            if (!_inventoryBounds.Contains(oldPosition))
+            {
+                Debug("Invalid from position!");
+                return false;
+            }
+            
+            // Ensure moved item exists.
+            int fromIndex = PositionToIndex(oldPosition);
+            SpatialInventoryItem movedData = _contents[fromIndex];
+            if (movedData == null)
+            {
+                Debug("Moved item does not exist!");
+                return false;
+            }
+            
+            Vector2Int oldPos = movedData.Bounds.Position;
+            int oldIndex = PositionToIndex(oldPos);
+            
+            _contents[oldIndex] = null;
+            targetInventory.TryAddItems(movedData.Item, 1);
+            
+            MovedItem?.Invoke(this, targetInventory, movedData, oldPos, Vector2Int.zero);
+
+            Debug("Move success!");
+            return true;
         }
 
 
@@ -142,7 +135,7 @@ namespace InventorySystem.Inventories.Spatial
             
             // Ensure moved item exists.
             int fromIndex = PositionToIndex(oldPosition);
-            SpatialInventoryData movedData = _contents[fromIndex];
+            SpatialInventoryItem movedData = _contents[fromIndex];
             if (movedData == null)
             {
                 Debug("Moved item does not exist!");
@@ -157,10 +150,9 @@ namespace InventorySystem.Inventories.Spatial
             if (toIndex < 0 || toIndex >= targetInventory._contents.Length)
                 return false;
             
-            SpatialInventoryData toData = targetInventory._contents[toIndex];
+            SpatialInventoryItem toData = targetInventory._contents[toIndex];
             if (toData != null && toData != movedData)
             {
-                //TODO: Implement item swapping (swap the two items with each other if possible)
                 Debug("Item swapping not yet implemented!");
                 return false;
             }
@@ -198,7 +190,7 @@ namespace InventorySystem.Inventories.Spatial
                 return false;
 
             // Check if there are any overlapping items.
-            foreach (SpatialInventoryData item in _contents)
+            foreach (SpatialInventoryItem item in _contents)
             {
                 if(item == null)
                     continue;
@@ -215,7 +207,7 @@ namespace InventorySystem.Inventories.Spatial
         
         
         /// <returns>If given item is inside the inventory and does not overlap with any other item.</returns>
-        public bool IsBoundsValid(InventoryBounds itemBounds, InventoryData dataToIgnore)
+        public bool IsBoundsValid(InventoryBounds itemBounds, InventoryItem<> dataToIgnore)
         {
             // Check if the item fits within the inventory bounds.
             if (!_inventoryBounds.Contains(itemBounds))
@@ -225,7 +217,7 @@ namespace InventorySystem.Inventories.Spatial
             }
 
             // Check if there are any overlapping items.
-            foreach (SpatialInventoryData item in _contents)
+            foreach (SpatialInventoryItem item in _contents)
             {
                 if(item == null)
                     continue;
@@ -244,7 +236,7 @@ namespace InventorySystem.Inventories.Spatial
         }
 
 
-        private SpatialInventoryData CreateNewInventoryItem(ItemData itemData)
+        private SpatialInventoryItem CreateNewInventoryItem(ItemData itemData)
         {
             foreach (Vector2Int position in _inventoryBounds.AllPositionsWithin())
             {
@@ -252,17 +244,17 @@ namespace InventorySystem.Inventories.Spatial
                 InventoryBounds itemBoundsRotated = new(position, itemData.InventorySizeY, itemData.InventorySizeX);
                 
                 if (IsBoundsValid(itemBounds))
-                    return new SpatialInventoryData(itemData, itemBounds, ItemRotation.DEG_0);
+                    return new SpatialInventoryItem(itemData, itemBounds, ItemRotation.DEG_0);
                 
                 if (IsBoundsValid(itemBoundsRotated))
-                    return new SpatialInventoryData(itemData, itemBoundsRotated, ItemRotation.DEG_90);
+                    return new SpatialInventoryItem(itemData, itemBoundsRotated, ItemRotation.DEG_90);
             }
 
             return null;
         }
 
 
-        private void AddInventoryItem(SpatialInventoryData data)
+        private void AddInventoryItem(SpatialInventoryItem data)
         {
             _contents[PositionToIndex(data.Bounds.Position)] = data;
             
@@ -270,7 +262,7 @@ namespace InventorySystem.Inventories.Spatial
         }
 
 
-        private void RemoveInventoryItem(SpatialInventoryData data)
+        private void RemoveInventoryItem(SpatialInventoryItem data)
         {
             _contents[PositionToIndex(data.Bounds.Position)] = null;
             
@@ -278,7 +270,7 @@ namespace InventorySystem.Inventories.Spatial
         }
 
 
-        private SpatialInventoryData GetInventoryItemAt(Vector2Int pos) => _contents[PositionToIndex(pos)];
+        private SpatialInventoryItem GetInventoryItemAt(Vector2Int pos) => _contents[PositionToIndex(pos)];
         
         
         //TODO: Use InventoryItem.InventoryIndex instead of this.

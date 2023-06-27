@@ -79,7 +79,7 @@ namespace InventorySystem.Inventories
         }
 
 
-        private void OnAddedItem(SpatialInventory spatialInventory, InventoryData data)
+        private void OnAddedItem(SpatialInventory spatialInventory, InventoryItem<> data)
         {
             if (_renderers.TryGetValue(spatialInventory, out SpatialInventoryRenderer inventoryRenderer))
             {
@@ -88,7 +88,7 @@ namespace InventorySystem.Inventories
         }
 
 
-        private void OnRemovedItem(SpatialInventory spatialInventory, InventoryData data)
+        private void OnRemovedItem(SpatialInventory spatialInventory, InventoryItem<> data)
         {
             if (_renderers.TryGetValue(spatialInventory, out SpatialInventoryRenderer inventoryRenderer))
             {
@@ -97,7 +97,7 @@ namespace InventorySystem.Inventories
         }
 
 
-        private void OnMovedItem(SpatialInventory oldSpatialInventory, SpatialInventory newSpatialInventory, InventoryData data, Vector2Int oldPos, Vector2Int newPos)
+        private void OnMovedItem(SpatialInventory oldSpatialInventory, SpatialInventory newSpatialInventory, InventoryItem<> data, Vector2Int oldPos, Vector2Int newPos)
         {
             if (_renderers.TryGetValue(oldSpatialInventory, out SpatialInventoryRenderer oldInventoryRenderer) &&
                 _renderers.TryGetValue(newSpatialInventory, out SpatialInventoryRenderer newInventoryRenderer))
@@ -131,7 +131,7 @@ namespace InventorySystem.Inventories
         {
             foreach (SpatialInventory inventory in _inventories.Values)
             {
-                if (inventory.TryAddItem(itemData))
+                if (inventory.TryAddItems(itemData))
                     return true;
             }
 

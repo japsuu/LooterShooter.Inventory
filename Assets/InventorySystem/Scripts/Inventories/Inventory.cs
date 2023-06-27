@@ -5,13 +5,13 @@ namespace InventorySystem.Inventories
 {
     public abstract class Inventory
     {
-        public abstract IEnumerable<InventoryData> GetItems();
+        public abstract IEnumerable<InventoryItem> GetItems();
 
 
         public abstract int ContainsItem(ItemData itemData);
 
 
-        public abstract bool TryAddItem(ItemData itemData);
+        public abstract int TryAddItems(ItemData itemData, int count);
 
 
         public abstract int TryRemoveItems(ItemData item, int count);

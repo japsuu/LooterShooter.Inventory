@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace InventorySystem.Inventories.Spatial.Items
 {
-    public class SpatialInventoryData : InventoryData
+    public class SpatialInventoryItem : InventoryItem<>
     {
         public int InventoryIndex;
         public Vector2Int Position { get; private set; }
@@ -14,7 +14,7 @@ namespace InventorySystem.Inventories.Spatial.Items
         public InventoryBounds Bounds { get; private set; }
 
 
-        public SpatialInventoryData(ItemData item, InventoryBounds bounds, ItemRotation rotation) : base(item)
+        public SpatialInventoryItem(ItemData item, InventoryBounds bounds, ItemRotation rotation) : base(item)
         {
             Bounds = bounds;
             Position = bounds.Position;

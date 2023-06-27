@@ -6,23 +6,29 @@ namespace InventorySystem.Inventories
 {
     public class SimpleInventory : Inventory
     {
-        private List<InventoryData> _contents;
+        private List<InventoryItem<>> _contents;
 
         
-        public override IEnumerable<InventoryData> GetItems() => _contents.AsEnumerable();
+        public override IEnumerable<InventoryItem<>> GetItems() => _contents.AsEnumerable();
 
 
         public override int ContainsItem(ItemData itemData) => _contents.Count(i => i.Item == itemData);
 
 
-        public override bool TryAddItem(ItemData itemData)
+        public override int TryAddItems(ItemData itemData, int count)
         {
-            if (_contents.Count >= _contents.Capacity)
-                return false;
-            
-            _contents.Add(new InventoryData(itemData));
+            int addCount = 0;
 
-            return true;
+            for (int i = 0; i < count; i++)
+            {
+                if (_contents.Count >= _contents.Capacity)
+                    return addCount;
+            
+                _contents.Add(new InventoryItem<>(itemData, this));
+                addCount++;
+            }
+
+            return addCount;
         }
 
 
@@ -34,11 +40,11 @@ namespace InventorySystem.Inventories
             int removedCount = 0;
             for (int i = _contents.Count - 1; i >= 0; i--)
             {
-                InventoryData inventoryData = _contents[i];
-                if (inventoryData.Item != item)
+                InventoryItem<> inventoryItem = _contents[i];
+                if (inventoryItem.Item != item)
                     continue;
 
-                _contents.Remove(inventoryData);
+                _contents.Remove(inventoryItem);
                 removedCount++;
 
                 if (removedCount == count)

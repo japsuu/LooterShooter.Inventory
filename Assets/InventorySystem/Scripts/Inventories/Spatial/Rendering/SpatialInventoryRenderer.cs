@@ -12,16 +12,16 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         // Serialized fields.
         [SerializeField] private TMP_Text _inventoryNameText;
         [SerializeField] private LayoutElement _inventoryLayoutElement;
-        [SerializeField] private RectTransform _entityRootTransform;
-        [SerializeField] private InventorySlotsRenderer _slotsRenderer;
-        [SerializeField] private InventoryEntity _entityPrefab;
+        [SerializeField] private RectTransform _floaterParentRectTransform;
+        [SerializeField] private SpatialItemReceiver _slotsRenderer;
+        [SerializeField] private SpatialFloater _floaterPrefab;
 
         // Private fields.
-        private Dictionary<InventoryData, InventoryEntity> _entities;
+        private Dictionary<InventoryItem<>, SpatialFloater> _entities;
         
         // Public fields.
         public SpatialInventory TargetSpatialInventory { get; private set; }
-        public RectTransform EntityRootTransform => _entityRootTransform;
+        public RectTransform FloaterParentRectTransform => _floaterParentRectTransform;
 
 
         private void Awake()
@@ -33,9 +33,9 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         private void Start()
         {
             // Destroy all children >:).
-            for (int i = _entityRootTransform.childCount - 1; i >= 0; i--)
+            for (int i = _floaterParentRectTransform.childCount - 1; i >= 0; i--)
             {
-                Destroy(_entityRootTransform.GetChild(i).gameObject);
+                Destroy(_floaterParentRectTransform.GetChild(i).gameObject);
             }
         }
 
@@ -59,26 +59,26 @@ namespace InventorySystem.Inventories.Spatial.Rendering
             // Resize the slots image.
             _slotsRenderer.Initialize(this, width, height);
 
-            foreach (InventoryData item in TargetSpatialInventory.GetItems())
+            foreach (InventoryItem<> item in TargetSpatialInventory.GetItems())
             {
                 CreateNewEntityForItem(item);
             }
         }
 
 
-        public void CreateNewEntityForItem(InventoryData data)
+        public void CreateNewEntityForItem(InventoryItem<> data)
         {
-            InventoryEntity entity = Instantiate(_entityPrefab, _entityRootTransform);
+            SpatialFloater floater = Instantiate(_floaterPrefab, _floaterParentRectTransform);
 
-            entity.Initialize(data, _slotsRenderer);
+            floater.Initialize(data, _slotsRenderer);
             
-            _entities.Add(data, entity);
+            _entities.Add(data, floater);
         }
 
 
-        public void RemoveEntityOfItem(InventoryData data)
+        public void RemoveEntityOfItem(InventoryItem<> data)
         {
-            if (_entities.Remove(data, out InventoryEntity entity))
+            if (_entities.Remove(data, out SpatialFloater entity))
             {
                 if(entity != null)
                     Destroy(entity.gameObject);
@@ -94,7 +94,7 @@ namespace InventorySystem.Inventories.Spatial.Rendering
 
         private void RemoveAllEntities()
         {
-            foreach (InventoryData item in _entities.Keys)
+            foreach (InventoryItem<> item in _entities.Keys)
             {
                 if(_entities[item] != null)
                     Destroy(_entities[item].gameObject);
