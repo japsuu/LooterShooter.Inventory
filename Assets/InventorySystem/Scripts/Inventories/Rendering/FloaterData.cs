@@ -1,15 +1,14 @@
 ﻿using InventorySystem.Inventories.Items;
-using InventorySystem.Inventories.Spatial.Items;
 using UnityEngine;
 
-namespace InventorySystem.Inventories.Spatial.Rendering
+namespace InventorySystem.Inventories.Rendering
 {
-    public class SpatialFloaterData
+    public class FloaterData
     {
         /// <summary>
         /// Which item this entity represents.
         /// </summary>
-        public readonly InventoryItem<SpatialInventory> InventoryItem;
+        public readonly ItemMetadata Metadata;
         
         /// <summary>
         /// Item's width in cells.
@@ -20,11 +19,6 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         /// Item's height in cells.
         /// </summary>
         public readonly int ItemHeight;
-        
-        /// <summary>
-        /// Position in the current inventory grid.
-        /// </summary>
-        public Vector2Int Position { get; private set; }
         
         /// <summary>
         /// Rotation in the current inventory grid.
@@ -42,11 +36,12 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         public int SizeY { get; private set; }
 
 
-        public SpatialFloaterData(InventoryItem<SpatialInventory> inventoryItem)
+        public FloaterData(ItemMetadata metadata)
         {
-            InventoryItem = inventoryItem;
-            ItemWidth = inventoryItem.Item.InventorySizeX;
-            ItemHeight = inventoryItem.Item.InventorySizeY;
+            Metadata = metadata;
+            
+            ItemWidth = metadata.ItemDataReference.InventorySizeX;
+            ItemHeight = metadata.ItemDataReference.InventorySizeY;
             
             UpdateScale();
         }

@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace InventorySystem.Inventories.Spatial.Rendering
+namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
     [RequireComponent(typeof(Image))]
-    public class SpatialInventoryFloaterPositionValidator : MonoBehaviour
+    public class FloaterValidator : MonoBehaviour
     {
-        public static SpatialInventoryFloaterPositionValidator Singleton;
+        public static FloaterValidator Singleton;
         
         [SerializeField] private Color _validPositionColor = new Color(0f, 1f, 0f, 0.4f);
         [SerializeField] private Color _invalidPositionColor = new Color(1f, 0f, 0f, 0.4f);
@@ -20,7 +20,7 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         {
             if (Singleton != null)
             {
-                Debug.LogError($"Multiple {nameof(SpatialInventoryFloaterPositionValidator)} in scene!");
+                Debug.LogError($"Multiple {nameof(FloaterValidator)} in scene!");
                 return;
             }
 
@@ -57,7 +57,7 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         }
 
 
-        public void UpdatePosition(Vector2 anchoredPosition, SpatialFloater floater)
+        public void UpdatePosition(Vector2 anchoredPosition, Floater floater)
         {
             _validatorImage.enabled = true;
             //_rectTransform.anchoredPosition = anchoredPosition;

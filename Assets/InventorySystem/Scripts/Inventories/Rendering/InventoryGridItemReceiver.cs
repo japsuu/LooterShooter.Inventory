@@ -1,13 +1,11 @@
 ﻿using InventorySystem.Inventories.Items;
-using InventorySystem.Inventories.Rendering;
-using InventorySystem.Inventories.Spatial.Items;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace InventorySystem.Inventories.Spatial.Rendering
+namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(Image))]
-    public class SpatialItemReceiver : InventoryItemReceiver
+    public class InventoryGridItemReceiver : InventoryItemReceiver
     {
         private Image _slotsImage;
         private SpatialInventoryRenderer _inventoryRenderer;
@@ -30,19 +28,27 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         }
 
 
-        public override bool CanDropFloater(SpatialFloater floater)
+        public override bool CanDropFloater(Floater floater)
         {
             // Accept floater if their bounds do not collide with anything.
-            return _inventoryRenderer.TargetSpatialInventory.IsBoundsValid(floater.GetBounds(FloaterParentRectTransform));
+            return _inventoryRenderer.TargetInventoryX.IsBoundsValid(floater.GetBounds(FloaterParentRectTransform), floater.FloaterData.Metadata.PositionInInventory);
         }
 
 
-        public override void HandleDroppedFloater(SpatialFloater floater)
+        public override void HandleDroppedFloater(Floater floater)
         {
             if(!CanDropFloater(floater))
                 return;
+
+            FloaterData floaterData = floater.FloaterData;
+            ItemMetadataSnapshot snapshot = floaterData.Metadata;
+
+            Vector2Int currentPosition = snapshot.PositionInInventory;
+            InventoryX targetInventory = _inventoryRenderer.TargetInventoryX;
+            Vector2Int targetPosition = floater.GetGridPosition(FloaterParentRectTransform);
+            ItemRotation targetRotation = floaterData.Rotation;
             
-            floater.FloaterData.InventoryItem.ContainingInventory.TryMoveItem();
+            snapshot.ContainingInventory.TryMoveItem(currentPosition, targetInventory, targetPosition, targetRotation);
         }
     }
 }

@@ -1,16 +1,14 @@
 ﻿using InventorySystem.Inventories.Items;
-using InventorySystem.Inventories.Rendering;
-using InventorySystem.Inventories.Spatial.Items;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace InventorySystem.Inventories.Spatial.Rendering
+namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(CanvasGroup))]
     [RequireComponent(typeof(RectTransform))]
-    public class SpatialFloater : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class Floater : MonoBehaviour
     {
         // Serialized fields.BUG: Should contain a SpatialItemDisplay.
         [SerializeField] private RectTransform _contentsRoot;
@@ -18,7 +16,7 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         [SerializeField] private float _rotationSpeed = 20f;
 
         // Private fields: Initialization.
-        private SpatialFloaterData _floaterData;
+        private FloaterData _floaterData;
         private InventoryItemReceiver _containingDropTarget;
         private RectTransform _rectTransform;
         private CanvasGroup _draggingCanvasGroup;
@@ -26,14 +24,13 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         private InventoryItemReceiver _belowDropTarget;
         private Canvas _temporaryOverrideCanvas;
         private Vector2Int _position;
-        private ItemRotation _rotation;
         private Vector2 _dragStartCursorPosition;
         private Vector2 _dragStartObjectPosition;
         private float _targetContentRotation;
         private bool _isUserDragging;
         private readonly Vector3[] _rectCornersArray = new Vector3[4];
 
-        public SpatialFloaterData FloaterData => _floaterData;
+        public FloaterData FloaterData => _floaterData;  //BUG: Update
 
 
         private void Awake()
@@ -65,12 +62,12 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         }
 
 
-        public void Initialize(InventoryItem<> inventoryItem, InventoryItemReceiver containingDropTarget)
+        public void Initialize(ItemMetadata inventoryItem, InventoryItemReceiver containingDropTarget)
         {
-            _floaterData = new SpatialFloaterData(inventoryItem);
+            _floaterData = new FloaterData(inventoryItem);
             _containingDropTarget = containingDropTarget;
             
-            _itemImage.sprite = _floaterData.InventoryItem.Item.Sprite;
+            _itemImage.sprite = _floaterData.Metadata.ItemDataReference.Sprite;
             
             
             UpdateVisuals();
@@ -82,9 +79,9 @@ namespace InventorySystem.Inventories.Spatial.Rendering
 
         public InventoryBounds GetBounds(RectTransform rectPositionRelativeTo)
         {
-            bool isRotated = _rotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = _floaterData.InventoryItem.Item.InventorySizeX;
-            int itemSizeY = _floaterData.InventoryItem.Item.InventorySizeY;
+            bool isRotated = FloaterData.Rotation.ShouldFlipWidthAndHeight();
+            int itemSizeX = FloaterData.Metadata.ItemDataReference.InventorySizeX;
+            int itemSizeY = FloaterData.Metadata.ItemDataReference.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
 
@@ -93,6 +90,24 @@ namespace InventorySystem.Inventories.Spatial.Rendering
             
             InventoryBounds bounds = new(Utilities.GetInventoryGridPosition(topLeftCorner), itemWidth, itemHeight);
             return bounds;
+        }
+        
+        
+        public Vector2 GetAnchoredPositionRelativeToRect(RectTransform relativeTo)
+        {
+            Vector2 screenP = RectTransformUtility.WorldToScreenPoint(null, _rectTransform.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(relativeTo, screenP, null, out Vector2 relativePoint);
+
+            return relativePoint;
+        }
+        
+        /// <summary>
+        /// Position in the inventory grid relative to the given RectTransform.
+        /// </summary>
+        public Vector2Int GetGridPosition(RectTransform rectPositionRelativeTo)
+        {
+            Vector2 topLeftCorner = GetAnchoredPositionRelativeToRect(rectPositionRelativeTo);
+            return Utilities.GetInventoryGridPosition(topLeftCorner);
         }
 
 
@@ -109,7 +124,7 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         {
             UpdateRotation(_floaterData.Rotation);
             UpdateSize();
-            UpdatePosition(_floaterData.Position);
+            UpdatePosition(_floaterData.Metadata.Bounds.Position);
         }
 
 
@@ -128,8 +143,8 @@ namespace InventorySystem.Inventories.Spatial.Rendering
             // Root object size:
             // If the object is rotated, we need to flip width and height.
             bool isRotated = _rotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = _floaterData.InventoryItem.Item.InventorySizeX;
-            int itemSizeY = _floaterData.InventoryItem.Item.InventorySizeY;
+            int itemSizeX = _floaterData.Metadata.ItemData.InventorySizeX;
+            int itemSizeY = _floaterData.Metadata.ItemData.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
             
@@ -233,7 +248,7 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         {
             _isUserDragging = false;
             _draggingCanvasGroup.blocksRaycasts = true;
-            SpatialInventoryFloaterPositionValidator.Singleton.Hide();
+            FloaterValidator.Singleton.Hide();
 
             if (_temporaryOverrideCanvas != null)
                 Destroy(_temporaryOverrideCanvas);
@@ -246,7 +261,7 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         private void UpdateValidatorSize()
         {
             Vector2 sizeDelta = _rectTransform.sizeDelta;
-            SpatialInventoryFloaterPositionValidator.Singleton.UpdateSize(sizeDelta.x, sizeDelta.y);
+            FloaterValidator.Singleton.UpdateSize(sizeDelta.x, sizeDelta.y);
         }
 
 
@@ -258,12 +273,12 @@ namespace InventorySystem.Inventories.Spatial.Rendering
                 Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeAnchoredPos);
                 Vector2 screenSpacePos = _belowDropTarget.FloaterParentRectTransform.GetScreenSpacePosition(snappedPos);
 
-                SpatialInventoryFloaterPositionValidator.Singleton.UpdatePosition(screenSpacePos, this);
+                FloaterValidator.Singleton.UpdatePosition(screenSpacePos, this);
             }
             else
             {
                 Vector2 snappedPosition = Utilities.SnapPositionToInventoryGrid(_rectTransform.anchoredPosition);
-                SpatialInventoryFloaterPositionValidator.Singleton.UpdatePosition(
+                FloaterValidator.Singleton.UpdatePosition(
                     ((RectTransform)_rectTransform.parent).GetScreenSpacePosition(snappedPosition), this);
             }
         }
@@ -307,14 +322,5 @@ namespace InventorySystem.Inventories.Spatial.Rendering
 
         //[CanBeNull]
         //private SpatialInventory GetInventoryBelow() => _belowRenderer == null ? null : _belowRenderer.TargetSpatialInventory;
-
-
-        private Vector2 GetAnchoredPositionRelativeToRect(RectTransform relativeTo)
-        {
-            Vector2 screenP = RectTransformUtility.WorldToScreenPoint(null, _rectTransform.position);
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(relativeTo, screenP, null, out Vector2 relativePoint);
-
-            return relativePoint;
-        }
     }
 }

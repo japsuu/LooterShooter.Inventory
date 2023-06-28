@@ -2,7 +2,6 @@
 using InventorySystem.Inventories;
 using InventorySystem.Inventories.Items;
 using InventorySystem.Inventories.Rendering;
-using InventorySystem.Inventories.Spatial.Rendering;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,21 +31,21 @@ namespace InventorySystem.EquipmentSlots
         }
 
 
-        public virtual bool AcceptsFloater(SpatialFloater floater)
+        public virtual bool AcceptsFloater(Floater floater)
         {
             // Return true if we have a matching restriction or there is no restrictions.
             return _itemTypeRestrictions.Length < 1 ||
-                   _itemTypeRestrictions.Any(restriction => restriction == floater.FloaterData.InventoryItem.Type);
+                   _itemTypeRestrictions.Any(restriction => restriction == floater.FloaterData.Metadata.Type);
         }
 
 
-        public void OnEntityDropped(SpatialFloater floater)
+        public void OnEntityDropped(Floater floater)
         {
             throw new System.NotImplementedException();
         }
 
 
-        public void OnEntityLifted(SpatialFloater floater)
+        public void OnEntityLifted(Floater floater)
         {
             throw new System.NotImplementedException();
         }

@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using InventorySystem.Inventories.Items;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace InventorySystem.Inventories.Rendering
+namespace InventorySystem.Inventories
 {
     public class InventoryTester : MonoBehaviour
     {

@@ -2,15 +2,13 @@
 using System.Linq;
 using InventorySystem.Inventories.Items;
 using InventorySystem.Inventories.Rendering;
-using InventorySystem.Inventories.Spatial;
-using InventorySystem.Inventories.Spatial.Rendering;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace InventorySystem.Inventories
 {
     /// <summary>
-    /// Controls multiple child <see cref="SpatialInventory"/>s.TODO: Split to event based renderer.
+    /// Controls multiple child <see cref="InventoryX"/>s.TODO: Split to event based renderer.
     /// </summary>
     public class PlayerInventoryManager : MonoBehaviour
     {
@@ -26,8 +24,8 @@ namespace InventorySystem.Inventories
         [SerializeField, Min(0)] private int _baseInventoryWidth = 8;
         [SerializeField, Min(0)] private int _baseInventoryHeight = 4;
         
-        private Dictionary<string, SpatialInventory> _inventories;
-        private Dictionary<SpatialInventory, SpatialInventoryRenderer> _renderers;
+        private Dictionary<string, InventoryX> _inventories;
+        private Dictionary<InventoryX, SpatialInventoryRenderer> _renderers;
 
 
         private void Awake()
@@ -63,44 +61,44 @@ namespace InventorySystem.Inventories
             if(width < 1 || height < 1)
                 return;
             
-            SpatialInventory spatialInventory = new(width, height);
+            InventoryX inventoryX = new(width, height);
             
             SpatialInventoryRenderer spatialInventoryRenderer = Instantiate(_spatialInventoryRendererPrefab, _inventoryRenderersRoot);
-            spatialInventoryRenderer.RenderInventory(spatialInventory, inventoryName);
+            spatialInventoryRenderer.RenderInventory(inventoryX, inventoryName);
             
-            spatialInventory.AddedItem += OnAddedItem;
-            spatialInventory.MovedItem += OnMovedItem;
-            spatialInventory.RemovedItem += OnRemovedItem;
+            inventoryX.ItemMetadataAdded += OnItemMetadataAdded;
+            inventoryX.ItemMetadataChanged += OnItemMetadataChanged;
+            inventoryX.ItemMetadataRemoved += OnItemMetadataRemoved;
             
-            _inventories.Add(inventoryName, spatialInventory);
-            _renderers.Add(spatialInventory, spatialInventoryRenderer);
+            _inventories.Add(inventoryName, inventoryX);
+            _renderers.Add(inventoryX, spatialInventoryRenderer);
             
             print($"added {inventoryName} ({width}x{height})");
         }
 
 
-        private void OnAddedItem(SpatialInventory spatialInventory, InventoryItem<> data)
+        private void OnItemMetadataAdded(InventoryX inventoryX, InventoryItem<> data)
         {
-            if (_renderers.TryGetValue(spatialInventory, out SpatialInventoryRenderer inventoryRenderer))
+            if (_renderers.TryGetValue(inventoryX, out SpatialInventoryRenderer inventoryRenderer))
             {
                 inventoryRenderer.CreateNewEntityForItem(data);
             }
         }
 
 
-        private void OnRemovedItem(SpatialInventory spatialInventory, InventoryItem<> data)
+        private void OnItemMetadataRemoved(InventoryX inventoryX, InventoryItem<> data)
         {
-            if (_renderers.TryGetValue(spatialInventory, out SpatialInventoryRenderer inventoryRenderer))
+            if (_renderers.TryGetValue(inventoryX, out SpatialInventoryRenderer inventoryRenderer))
             {
                 inventoryRenderer.RemoveEntityOfItem(data);
             }
         }
 
 
-        private void OnMovedItem(SpatialInventory oldSpatialInventory, SpatialInventory newSpatialInventory, InventoryItem<> data, Vector2Int oldPos, Vector2Int newPos)
+        private void OnItemMetadataChanged(InventoryX oldInventoryX, InventoryX newInventoryX, InventoryItem<> data, Vector2Int oldPos, Vector2Int newPos)
         {
-            if (_renderers.TryGetValue(oldSpatialInventory, out SpatialInventoryRenderer oldInventoryRenderer) &&
-                _renderers.TryGetValue(newSpatialInventory, out SpatialInventoryRenderer newInventoryRenderer))
+            if (_renderers.TryGetValue(oldInventoryX, out SpatialInventoryRenderer oldInventoryRenderer) &&
+                _renderers.TryGetValue(newInventoryX, out SpatialInventoryRenderer newInventoryRenderer))
             {
                 oldInventoryRenderer.RemoveEntityOfItem(data);
                 newInventoryRenderer.CreateNewEntityForItem(data);
@@ -110,11 +108,11 @@ namespace InventorySystem.Inventories
 
         public void RemoveInventory(string inventoryName)
         {
-            if (_inventories.Remove(inventoryName, out SpatialInventory inventory))
+            if (_inventories.Remove(inventoryName, out InventoryX inventory))
             {
-                inventory.AddedItem -= OnAddedItem;
-                inventory.MovedItem -= OnMovedItem;
-                inventory.RemovedItem -= OnRemovedItem;
+                inventory.ItemMetadataAdded -= OnItemMetadataAdded;
+                inventory.ItemMetadataChanged -= OnItemMetadataChanged;
+                inventory.ItemMetadataRemoved -= OnItemMetadataRemoved;
                 
                 if (_renderers.Remove(inventory, out SpatialInventoryRenderer inventoryRenderer))
                 {
@@ -129,7 +127,7 @@ namespace InventorySystem.Inventories
 
         public bool TryAddItem(ItemData itemData)
         {
-            foreach (SpatialInventory inventory in _inventories.Values)
+            foreach (InventoryX inventory in _inventories.Values)
             {
                 if (inventory.TryAddItems(itemData))
                     return true;
@@ -142,7 +140,7 @@ namespace InventorySystem.Inventories
         public int TryRemoveItems(ItemData item, int count)
         {
             int removedInTotal = 0;
-            foreach (SpatialInventory inventory in _inventories.Values)
+            foreach (InventoryX inventory in _inventories.Values)
             {
                 removedInTotal += inventory.TryRemoveItems(item, count);
 

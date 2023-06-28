@@ -1,11 +1,11 @@
 ﻿using InventorySystem.Inventories.Items;
-using InventorySystem.Inventories.Spatial.Items;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-namespace InventorySystem.Inventories.Spatial.Rendering
+namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
-    public class SpatialItemDisplay : MonoBehaviour
+    public class ItemDisplay : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         private RectTransform _contentsRoot;
         private RectTransform _rectTransform;
@@ -28,8 +28,8 @@ namespace InventorySystem.Inventories.Spatial.Rendering
             // Scale root object.
             // If the object is rotated, we need to flip width and height.
             bool isRotated = inventoryRotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = data.Item.InventorySizeX;
-            int itemSizeY = data.Item.InventorySizeY;
+            int itemSizeX = data.ItemData.InventorySizeX;
+            int itemSizeY = data.ItemData.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
             

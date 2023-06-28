@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace InventorySystem.Inventories.Spatial.Items
+namespace InventorySystem.Inventories.Items
 {
     public enum ItemRotation
     {

@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace InventorySystem.Inventories.Spatial.Rendering
+namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
     public class SpatialInventoryRenderer : MonoBehaviour
@@ -13,14 +13,14 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         [SerializeField] private TMP_Text _inventoryNameText;
         [SerializeField] private LayoutElement _inventoryLayoutElement;
         [SerializeField] private RectTransform _floaterParentRectTransform;
-        [SerializeField] private SpatialItemReceiver _slotsRenderer;
-        [SerializeField] private SpatialFloater _floaterPrefab;
+        [SerializeField] private InventoryGridItemReceiver _slotsRenderer;
+        [SerializeField] private Floater _floaterPrefab;
 
         // Private fields.
-        private Dictionary<InventoryItem<>, SpatialFloater> _entities;
+        private Dictionary<ItemMetadata, Floater> _entities;
         
         // Public fields.
-        public SpatialInventory TargetSpatialInventory { get; private set; }
+        public InventoryX TargetInventoryX { get; private set; }
         public RectTransform FloaterParentRectTransform => _floaterParentRectTransform;
 
 
@@ -40,17 +40,17 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         }
 
 
-        public void RenderInventory(SpatialInventory spatialInventory, string inventoryName)
+        public void RenderInventory(InventoryX inventoryX, string inventoryName)
         {
-            if (TargetSpatialInventory != null)
+            if (TargetInventoryX != null)
                 StopRenderInventory();
 
             _inventoryNameText.text = inventoryName;
             
-            TargetSpatialInventory = spatialInventory;
+            TargetInventoryX = inventoryX;
 
-            float width = TargetSpatialInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
-            float height = TargetSpatialInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
+            float width = TargetInventoryX.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
+            float height = TargetInventoryX.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
             
             // Resize the grid.
             _inventoryLayoutElement.minWidth = width;
@@ -59,16 +59,16 @@ namespace InventorySystem.Inventories.Spatial.Rendering
             // Resize the slots image.
             _slotsRenderer.Initialize(this, width, height);
 
-            foreach (InventoryItem<> item in TargetSpatialInventory.GetItems())
+            foreach (ItemMetadata item in TargetInventoryX.GetItems())
             {
                 CreateNewEntityForItem(item);
             }
         }
 
 
-        public void CreateNewEntityForItem(InventoryItem<> data)
+        public void CreateNewEntityForItem(ItemMetadata data)
         {
-            SpatialFloater floater = Instantiate(_floaterPrefab, _floaterParentRectTransform);
+            Floater floater = Instantiate(_floaterPrefab, _floaterParentRectTransform);
 
             floater.Initialize(data, _slotsRenderer);
             
@@ -76,9 +76,9 @@ namespace InventorySystem.Inventories.Spatial.Rendering
         }
 
 
-        public void RemoveEntityOfItem(InventoryItem<> data)
+        public void RemoveEntityOfItem(ItemMetadata data)
         {
-            if (_entities.Remove(data, out SpatialFloater entity))
+            if (_entities.Remove(data, out Floater entity))
             {
                 if(entity != null)
                     Destroy(entity.gameObject);
@@ -94,7 +94,7 @@ namespace InventorySystem.Inventories.Spatial.Rendering
 
         private void RemoveAllEntities()
         {
-            foreach (InventoryItem<> item in _entities.Keys)
+            foreach (ItemMetadata item in _entities.Keys)
             {
                 if(_entities[item] != null)
                     Destroy(_entities[item].gameObject);
