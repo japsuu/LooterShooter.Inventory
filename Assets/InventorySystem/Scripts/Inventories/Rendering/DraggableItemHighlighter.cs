@@ -5,9 +5,9 @@ namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
     [RequireComponent(typeof(Image))]
-    public class InventoryFloaterHighlighter : MonoBehaviour
+    public class DraggableItemHighlighter : MonoBehaviour
     {
-        public static InventoryFloaterHighlighter Singleton;
+        public static DraggableItemHighlighter Singleton;
         
         [SerializeField] private Color _validPositionColor = new Color(0f, 1f, 0f, 0.4f);
         [SerializeField] private Color _invalidPositionColor = new Color(1f, 0f, 0f, 0.4f);
@@ -20,7 +20,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             if (Singleton != null)
             {
-                Debug.LogError($"Multiple {nameof(InventoryFloaterHighlighter)} in scene!");
+                Debug.LogError($"Multiple {nameof(DraggableItemHighlighter)} in scene!");
                 return;
             }
 
@@ -57,13 +57,13 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void UpdatePosition(Vector2 anchoredPosition, InventoryFloater floater)
+        public void UpdatePosition(Vector2 anchoredPosition, DraggableItem draggableItem)
         {
             _validatorImage.enabled = true;
             //_rectTransform.anchoredPosition = anchoredPosition;
             _rectTransform.position = anchoredPosition;
 
-            bool isValidPosition = floater.IsBoundsValid();
+            bool isValidPosition = draggableItem.IsBoundsValid();
             _validatorImage.color = isValidPosition ? _validPositionColor : _invalidPositionColor;
         }
     }

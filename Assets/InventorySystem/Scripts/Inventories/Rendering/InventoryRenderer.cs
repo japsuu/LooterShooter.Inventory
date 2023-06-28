@@ -2,7 +2,6 @@
 using InventorySystem.Inventories.Items;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace InventorySystem.Inventories.Rendering
 {
@@ -11,13 +10,12 @@ namespace InventorySystem.Inventories.Rendering
     {
         // Serialized fields.
         [SerializeField] private TMP_Text _inventoryNameText;
-        [SerializeField] private LayoutElement _inventoryLayoutElement;
         [SerializeField] private RectTransform _entityRootTransform;
-        [SerializeField] private InventorySlotsRenderer _slotsRenderer;
-        [SerializeField] private InventoryFloater _floaterPrefab;
+        [SerializeField] private InventoryGrid _inventoryGrid;
+        [SerializeField] private DraggableItem _draggableItemPrefab;
 
         // Private fields.
-        private Dictionary<ItemMetadata, InventoryFloater> _entities;
+        private Dictionary<ItemMetadata, DraggableItem> _entities;
         
         // Public fields.
         public Inventory TargetInventory { get; private set; }
@@ -51,13 +49,9 @@ namespace InventorySystem.Inventories.Rendering
 
             float width = TargetInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
             float height = TargetInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
-            
-            // Resize the grid.
-            _inventoryLayoutElement.minWidth = width;
-            _inventoryLayoutElement.minHeight = height;
-            
+
             // Resize the slots image.
-            _slotsRenderer.Initialize(this, width, height);
+            _inventoryGrid.Initialize(this, width, height);
 
             foreach (ItemMetadata item in TargetInventory.GetItems())
             {
@@ -68,17 +62,17 @@ namespace InventorySystem.Inventories.Rendering
 
         public void CreateNewEntityForItem(ItemMetadata itemMetadata)
         {
-            InventoryFloater floater = Instantiate(_floaterPrefab, _entityRootTransform);
+            DraggableItem draggableItem = Instantiate(_draggableItemPrefab, _entityRootTransform);
 
-            floater.Initialize(itemMetadata, TargetInventory);
+            draggableItem.Initialize(itemMetadata, TargetInventory);
             
-            _entities.Add(itemMetadata, floater);
+            _entities.Add(itemMetadata, draggableItem);
         }
 
 
         public void RemoveEntityOfItem(ItemMetadata itemMetadata)
         {
-            if (_entities.Remove(itemMetadata, out InventoryFloater entity))
+            if (_entities.Remove(itemMetadata, out DraggableItem entity))
             {
                 if(entity != null)
                     Destroy(entity.gameObject);

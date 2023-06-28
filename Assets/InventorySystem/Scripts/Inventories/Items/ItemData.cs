@@ -13,7 +13,7 @@ namespace InventorySystem.Inventories.Items
         [SerializeField] private string _itemName = "MissingYes";
         [SerializeField] private string _itemDescription = "Missing Description";
         [FormerlySerializedAs("itemSprite")] [SerializeField] private Sprite _itemSprite;
-        [SerializeField] private ItemType _itemType = ItemType.Nothing;
+        [SerializeField] private ItemType _itemType = ItemType.MATERIAL;
         [SerializeField, Min(1)] private int _inventorySizeX = 1;
         [SerializeField, Min(1)] private int _inventorySizeY = 1;
 
@@ -23,5 +23,6 @@ namespace InventorySystem.Inventories.Items
         public string Description => _itemDescription;
         public int InventorySizeX => _inventorySizeX;
         public int InventorySizeY => _inventorySizeY;
+        public ItemType ItemType => _itemType;
     }
 }

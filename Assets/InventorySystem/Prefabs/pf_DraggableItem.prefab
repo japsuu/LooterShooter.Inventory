@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 241845589883745374}
   - component: {fileID: 3733060618046563850}
   m_Layer: 5
-  m_Name: pf_InventoryEntity
+  m_Name: pf_DraggableItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
