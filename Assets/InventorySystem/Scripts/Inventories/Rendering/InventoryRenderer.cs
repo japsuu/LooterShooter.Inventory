@@ -14,10 +14,10 @@ namespace InventorySystem.Inventories.Rendering
         [SerializeField] private LayoutElement _inventoryLayoutElement;
         [SerializeField] private RectTransform _entityRootTransform;
         [SerializeField] private InventorySlotsRenderer _slotsRenderer;
-        [SerializeField] private InventoryEntity _entityPrefab;
+        [SerializeField] private InventoryFloater _floaterPrefab;
 
         // Private fields.
-        private Dictionary<ItemMetadata, InventoryEntity> _entities;
+        private Dictionary<ItemMetadata, InventoryFloater> _entities;
         
         // Public fields.
         public Inventory TargetInventory { get; private set; }
@@ -68,17 +68,17 @@ namespace InventorySystem.Inventories.Rendering
 
         public void CreateNewEntityForItem(ItemMetadata itemMetadata)
         {
-            InventoryEntity entity = Instantiate(_entityPrefab, _entityRootTransform);
+            InventoryFloater floater = Instantiate(_floaterPrefab, _entityRootTransform);
 
-            entity.Initialize(itemMetadata, TargetInventory);
+            floater.Initialize(itemMetadata, TargetInventory);
             
-            _entities.Add(itemMetadata, entity);
+            _entities.Add(itemMetadata, floater);
         }
 
 
         public void RemoveEntityOfItem(ItemMetadata itemMetadata)
         {
-            if (_entities.Remove(itemMetadata, out InventoryEntity entity))
+            if (_entities.Remove(itemMetadata, out InventoryFloater entity))
             {
                 if(entity != null)
                     Destroy(entity.gameObject);

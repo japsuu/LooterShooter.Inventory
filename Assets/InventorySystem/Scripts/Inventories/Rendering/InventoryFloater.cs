@@ -8,7 +8,7 @@ namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(CanvasGroup))]
     [RequireComponent(typeof(RectTransform))]
-    public class InventoryEntity : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class InventoryFloater : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         // Serialized fields.
         [SerializeField] private RectTransform _contentsRoot;
@@ -151,28 +151,6 @@ namespace InventorySystem.Inventories.Rendering
             
             // Adjust position.
             _rectTransform.anchoredPosition += positionAdjustment;
-            
-            // I have left the old code for center pivot below.
-            /*// Cache the original anchor and pivot points.
-            Vector2 originalAnchorMin = RectTransform.anchorMin;
-            Vector2 originalAnchorMax = RectTransform.anchorMax;
-            Vector2 originalPivot = RectTransform.pivot;
-
-            // Set the anchor and pivot points to the center.
-            RectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-            RectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-            RectTransform.pivot = new Vector2(0.5f, 0.5f);
-
-            // Scale the rectTransforms.
-            RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rootWidth);
-            RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rootHeight);
-            _contentsRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, contentsWidth);
-            _contentsRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentsHeight);
-
-            // Restore the original anchor and pivot points.
-            RectTransform.anchorMin = originalAnchorMin;
-            RectTransform.anchorMax = originalAnchorMax;
-            RectTransform.pivot = originalPivot;*/
         }
 
         private void UpdatePosition()
@@ -229,7 +207,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             _isUserDragging = false;
             _draggingCanvasGroup.blocksRaycasts = true;
-            InventoryEntityHighlighter.Singleton.Hide();
+            InventoryFloaterHighlighter.Singleton.Hide();
 
             if (_temporaryOverrideCanvas != null)
                 Destroy(_temporaryOverrideCanvas);
@@ -242,7 +220,7 @@ namespace InventorySystem.Inventories.Rendering
         private void UpdateValidatorSize()
         {
             Vector2 sizeDelta = _rectTransform.sizeDelta;
-            InventoryEntityHighlighter.Singleton.UpdateSize(sizeDelta.x, sizeDelta.y);
+            InventoryFloaterHighlighter.Singleton.UpdateSize(sizeDelta.x, sizeDelta.y);
         }
 
 
@@ -254,12 +232,12 @@ namespace InventorySystem.Inventories.Rendering
                 Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeAnchoredPos);
                 Vector2 screenSpacePos = _belowRenderer.EntityRootTransform.GetScreenSpacePosition(snappedPos);
 
-                InventoryEntityHighlighter.Singleton.UpdatePosition(screenSpacePos, this);
+                InventoryFloaterHighlighter.Singleton.UpdatePosition(screenSpacePos, this);
             }
             else
             {
                 Vector2 snappedPosition = Utilities.SnapPositionToInventoryGrid(_rectTransform.anchoredPosition);
-                InventoryEntityHighlighter.Singleton.UpdatePosition(
+                InventoryFloaterHighlighter.Singleton.UpdatePosition(
                     ((RectTransform)_rectTransform.parent).GetScreenSpacePosition(snappedPosition), this);
             }
         }
