@@ -16,10 +16,11 @@ namespace InventorySystem.Inventories.Rendering
         [SerializeField] private float _rotationSpeed = 20f;
 
         // Private fields: Initialization.
-        private InventoryItem _data;
+        private ItemMetadata _data;
         private Inventory _containingInventory;
         private RectTransform _rectTransform;
         private CanvasGroup _draggingCanvasGroup;
+        
         // Private fields: Runtime.
         private InventoryRenderer _belowRenderer;
         private Canvas _temporaryOverrideCanvas;
@@ -61,12 +62,12 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void Initialize(InventoryItem item, Inventory inventory)
+        public void Initialize(ItemMetadata itemMetadata, Inventory inventory)
         {
             _containingInventory = inventory;
-            _data = item;
+            _data = itemMetadata;
             
-            _itemImage.sprite = _data.Item.Sprite;
+            _itemImage.sprite = _data.ItemDataReference.Sprite;
             
             UpdateVisuals();
 
@@ -78,8 +79,8 @@ namespace InventorySystem.Inventories.Rendering
         private InventoryBounds GetBounds(RectTransform positionRelativeTo)
         {
             bool isRotated = _rotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = _data.Item.InventorySizeX;
-            int itemSizeY = _data.Item.InventorySizeY;
+            int itemSizeX = _data.ItemDataReference.InventorySizeX;
+            int itemSizeY = _data.ItemDataReference.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
 
@@ -102,7 +103,7 @@ namespace InventorySystem.Inventories.Rendering
 
         private void UpdateVisuals()
         {
-            UpdateRotation(_data.Rotation);
+            UpdateRotation(_data.RotationInInventory);
             UpdateSize();
             UpdatePosition();
         }
@@ -123,8 +124,8 @@ namespace InventorySystem.Inventories.Rendering
             // Root object size:
             // If the object is rotated, we need to flip width and height.
             bool isRotated = _rotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = _data.Item.InventorySizeX;
-            int itemSizeY = _data.Item.InventorySizeY;
+            int itemSizeX = _data.ItemDataReference.InventorySizeX;
+            int itemSizeY = _data.ItemDataReference.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
             
@@ -177,7 +178,7 @@ namespace InventorySystem.Inventories.Rendering
         private void UpdatePosition()
         {
             // Set the new position.
-            _position = _data.Position;
+            _position = _data.Bounds.Position;
 
             // Move to new position.
             float posX = _position.x * Utilities.INVENTORY_SLOT_SIZE;
@@ -228,7 +229,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             _isUserDragging = false;
             _draggingCanvasGroup.blocksRaycasts = true;
-            InventoryEntityPositionValidator.Singleton.Hide();
+            InventoryEntityHighlighter.Singleton.Hide();
 
             if (_temporaryOverrideCanvas != null)
                 Destroy(_temporaryOverrideCanvas);
@@ -241,7 +242,7 @@ namespace InventorySystem.Inventories.Rendering
         private void UpdateValidatorSize()
         {
             Vector2 sizeDelta = _rectTransform.sizeDelta;
-            InventoryEntityPositionValidator.Singleton.UpdateSize(sizeDelta.x, sizeDelta.y);
+            InventoryEntityHighlighter.Singleton.UpdateSize(sizeDelta.x, sizeDelta.y);
         }
 
 
@@ -253,12 +254,12 @@ namespace InventorySystem.Inventories.Rendering
                 Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeAnchoredPos);
                 Vector2 screenSpacePos = _belowRenderer.EntityRootTransform.GetScreenSpacePosition(snappedPos);
 
-                InventoryEntityPositionValidator.Singleton.UpdatePosition(screenSpacePos, this);
+                InventoryEntityHighlighter.Singleton.UpdatePosition(screenSpacePos, this);
             }
             else
             {
                 Vector2 snappedPosition = Utilities.SnapPositionToInventoryGrid(_rectTransform.anchoredPosition);
-                InventoryEntityPositionValidator.Singleton.UpdatePosition(
+                InventoryEntityHighlighter.Singleton.UpdatePosition(
                     ((RectTransform)_rectTransform.parent).GetScreenSpacePosition(snappedPosition), this);
             }
         }

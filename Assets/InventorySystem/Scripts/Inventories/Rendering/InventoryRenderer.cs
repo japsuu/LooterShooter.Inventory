@@ -17,7 +17,7 @@ namespace InventorySystem.Inventories.Rendering
         [SerializeField] private InventoryEntity _entityPrefab;
 
         // Private fields.
-        private Dictionary<InventoryItem, InventoryEntity> _entities;
+        private Dictionary<ItemMetadata, InventoryEntity> _entities;
         
         // Public fields.
         public Inventory TargetInventory { get; private set; }
@@ -59,26 +59,26 @@ namespace InventorySystem.Inventories.Rendering
             // Resize the slots image.
             _slotsRenderer.Initialize(this, width, height);
 
-            foreach (InventoryItem item in TargetInventory.GetItems())
+            foreach (ItemMetadata item in TargetInventory.GetItems())
             {
                 CreateNewEntityForItem(item);
             }
         }
 
 
-        public void CreateNewEntityForItem(InventoryItem item)
+        public void CreateNewEntityForItem(ItemMetadata itemMetadata)
         {
             InventoryEntity entity = Instantiate(_entityPrefab, _entityRootTransform);
 
-            entity.Initialize(item, TargetInventory);
+            entity.Initialize(itemMetadata, TargetInventory);
             
-            _entities.Add(item, entity);
+            _entities.Add(itemMetadata, entity);
         }
 
 
-        public void RemoveEntityOfItem(InventoryItem item)
+        public void RemoveEntityOfItem(ItemMetadata itemMetadata)
         {
-            if (_entities.Remove(item, out InventoryEntity entity))
+            if (_entities.Remove(itemMetadata, out InventoryEntity entity))
             {
                 if(entity != null)
                     Destroy(entity.gameObject);
@@ -94,7 +94,7 @@ namespace InventorySystem.Inventories.Rendering
 
         private void RemoveAllEntities()
         {
-            foreach (InventoryItem item in _entities.Keys)
+            foreach (ItemMetadata item in _entities.Keys)
             {
                 if(_entities[item] != null)
                     Destroy(_entities[item].gameObject);

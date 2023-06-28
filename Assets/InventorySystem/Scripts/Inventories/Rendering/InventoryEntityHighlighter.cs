@@ -1,14 +1,13 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
     [RequireComponent(typeof(Image))]
-    public class InventoryEntityPositionValidator : MonoBehaviour
+    public class InventoryEntityHighlighter : MonoBehaviour
     {
-        public static InventoryEntityPositionValidator Singleton;
+        public static InventoryEntityHighlighter Singleton;
         
         [SerializeField] private Color _validPositionColor = new Color(0f, 1f, 0f, 0.4f);
         [SerializeField] private Color _invalidPositionColor = new Color(1f, 0f, 0f, 0.4f);
@@ -21,7 +20,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             if (Singleton != null)
             {
-                Debug.LogError($"Multiple {nameof(InventoryEntityPositionValidator)} in scene!");
+                Debug.LogError($"Multiple {nameof(InventoryEntityHighlighter)} in scene!");
                 return;
             }
 

@@ -75,31 +75,31 @@ namespace InventorySystem.Inventories
         }
 
 
-        private void OnAddedItem(Inventory inventory, InventoryItem item)
+        private void OnAddedItem(Inventory inventory, ItemMetadata itemMetadata)
         {
             if (_renderers.TryGetValue(inventory, out InventoryRenderer inventoryRenderer))
             {
-                inventoryRenderer.CreateNewEntityForItem(item);
+                inventoryRenderer.CreateNewEntityForItem(itemMetadata);
             }
         }
 
 
-        private void OnRemovedItem(Inventory inventory, InventoryItem item)
+        private void OnRemovedItem(Inventory inventory, ItemMetadata itemMetadata)
         {
             if (_renderers.TryGetValue(inventory, out InventoryRenderer inventoryRenderer))
             {
-                inventoryRenderer.RemoveEntityOfItem(item);
+                inventoryRenderer.RemoveEntityOfItem(itemMetadata);
             }
         }
 
 
-        private void OnMovedItem(Inventory oldInventory, Inventory newInventory, InventoryItem item, Vector2Int oldPos, Vector2Int newPos)
+        private void OnMovedItem(Inventory oldInventory, Inventory newInventory, ItemMetadata itemMetadata, Vector2Int oldPos, Vector2Int newPos)
         {
             if (_renderers.TryGetValue(oldInventory, out InventoryRenderer oldInventoryRenderer) &&
                 _renderers.TryGetValue(newInventory, out InventoryRenderer newInventoryRenderer))
             {
-                oldInventoryRenderer.RemoveEntityOfItem(item);
-                newInventoryRenderer.CreateNewEntityForItem(item);
+                oldInventoryRenderer.RemoveEntityOfItem(itemMetadata);
+                newInventoryRenderer.CreateNewEntityForItem(itemMetadata);
             }
         }
 
@@ -123,30 +123,33 @@ namespace InventorySystem.Inventories
         }
 
 
-        public bool TryAddItem(ItemData itemData)
+        public int TryAddItems(ItemData itemData, int count)
         {
+            int addedCount = 0;
             foreach (Inventory inventory in _inventories.Values)
             {
-                if (inventory.TryAddItem(itemData))
-                    return true;
+                if (addedCount >= count)
+                    return addedCount;
+                
+                addedCount += inventory.TryAddItems(itemData, count);
             }
 
-            return false;
+            return addedCount;
         }
 
 
         public int TryRemoveItems(ItemData item, int count)
         {
-            int removedInTotal = 0;
+            int removedCount = 0;
             foreach (Inventory inventory in _inventories.Values)
             {
-                removedInTotal += inventory.TryRemoveItems(item, count);
-
-                if (removedInTotal == count)
-                    return removedInTotal;
+                if (removedCount == count)
+                    return removedCount;
+                
+                removedCount += inventory.TryRemoveItems(item, count);
             }
 
-            return removedInTotal;
+            return removedCount;
         }
 
 

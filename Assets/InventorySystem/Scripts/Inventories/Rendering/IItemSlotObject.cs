@@ -4,6 +4,6 @@ namespace InventorySystem.Inventories.Rendering
 {
     public interface IItemSlotObject
     {
-        public bool IsBoundsValid(InventoryBounds itemBounds, InventoryItem thisItem);
+        public bool IsBoundsValid(InventoryBounds itemBounds, ItemMetadata thisItemMetadata);
     }
 }

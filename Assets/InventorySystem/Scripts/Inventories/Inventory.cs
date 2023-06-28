@@ -9,16 +9,16 @@ namespace InventorySystem.Inventories
     public class Inventory
     {
         // Events.
-        public event Action<Inventory, InventoryItem> AddedItem;
-        public event Action<Inventory, Inventory, InventoryItem, Vector2Int, Vector2Int> MovedItem;
-        public event Action<Inventory, InventoryItem> RemovedItem;
+        public event Action<Inventory, ItemMetadata> AddedItem;
+        public event Action<Inventory, Inventory, ItemMetadata, Vector2Int, Vector2Int> MovedItem;
+        public event Action<Inventory, ItemMetadata> RemovedItem;
 
         // Constants.
         private const bool DEBUG_MODE = false;
         
         // Private fields.
         private readonly InventoryBounds _inventoryBounds;
-        private readonly InventoryItem[] _contents;
+        private readonly ItemMetadata[] _contents;
         
         // Public fields.
         public InventoryBounds Bounds => _inventoryBounds;
@@ -27,29 +27,35 @@ namespace InventorySystem.Inventories
         public Inventory(int width, int height)
         {
             _inventoryBounds = new InventoryBounds(Vector2Int.zero, width, height);
-            _contents = new InventoryItem[width * height];
+            _contents = new ItemMetadata[width * height];
         }
 
 
-        public IEnumerable<InventoryItem> GetItems() => _contents.Where(item => item != null);
+        public IEnumerable<ItemMetadata> GetItems() => _contents.Where(item => item != null);
 
 
-        public int ContainsItem(ItemData itemData) => _contents.Count(inventoryItem => inventoryItem.Item == itemData);
+        public int ContainsItem(ItemData itemData) => _contents.Count(inventoryItem => inventoryItem.ItemDataReference == itemData);
 
         
-        public bool TryAddItem(ItemData itemData)
+        public int TryAddItems(ItemData itemData, int count)
         {
-            InventoryItem newItem = CreateNewInventoryItem(itemData);
-            
-            if (newItem == null)
-            {
-                Debug("Not enough space in the inventory!");
-                return false;
-            }
-            
-            AddInventoryItem(newItem);
+            int addedCount = 0;
 
-            return true;
+            for (int i = 0; i < count; i++)
+            {
+                ItemMetadata newItemMetadata = CreateNewInventoryItem(itemData);
+            
+                if (newItemMetadata == null)
+                {
+                    Debug("Not enough space in the inventory!");
+                    return addedCount;
+                }
+            
+                AddInventoryItem(newItemMetadata);
+                addedCount++;
+            }
+
+            return addedCount;
         }
 
         
@@ -57,12 +63,12 @@ namespace InventorySystem.Inventories
         public int TryRemoveItems(ItemData item, int count)
         {
             int removedCount = 0;
-            foreach (InventoryItem inventoryItem in _contents)
+            foreach (ItemMetadata inventoryItem in _contents)
             {
                 if(item == null)
                     continue;
 
-                if (inventoryItem.Item != item)
+                if (inventoryItem.ItemDataReference != item)
                     continue;
                 
                 RemoveInventoryItem(inventoryItem);
@@ -92,14 +98,14 @@ namespace InventorySystem.Inventories
             
             // Ensure moved item exists.
             int fromIndex = PositionToIndex(oldPosition);
-            InventoryItem movedItem = _contents[fromIndex];
-            if (movedItem == null)
+            ItemMetadata movedItemMetadata = _contents[fromIndex];
+            if (movedItemMetadata == null)
             {
                 Debug("Moved item does not exist!");
                 return false;
             }
             
-            if (oldPosition == newPosition && movedItem.Rotation == newRotation && targetInventory == this)
+            if (oldPosition == newPosition && movedItemMetadata.RotationInInventory == newRotation && targetInventory == this)
                 return false;
             
             int toIndex = targetInventory.PositionToIndex(newPosition);
@@ -107,8 +113,8 @@ namespace InventorySystem.Inventories
             if (toIndex < 0 || toIndex >= targetInventory._contents.Length)
                 return false;
             
-            InventoryItem toItem = targetInventory._contents[toIndex];
-            if (toItem != null && toItem != movedItem)
+            ItemMetadata toItemMetadata = targetInventory._contents[toIndex];
+            if (toItemMetadata != null && toItemMetadata != movedItemMetadata)
             {
                 //TODO: Implement item swapping (swap the two items with each other if possible)
                 Debug("Item swapping not yet implemented!");
@@ -117,13 +123,13 @@ namespace InventorySystem.Inventories
 
             bool flipWidthAndHeight = newRotation.ShouldFlipWidthAndHeight();
             InventoryBounds newBounds = flipWidthAndHeight ?
-                new InventoryBounds(newPosition, movedItem.Item.InventorySizeY, movedItem.Item.InventorySizeX) :
-                new InventoryBounds(newPosition, movedItem.Item.InventorySizeX, movedItem.Item.InventorySizeY);
+                new InventoryBounds(newPosition, movedItemMetadata.ItemDataReference.InventorySizeY, movedItemMetadata.ItemDataReference.InventorySizeX) :
+                new InventoryBounds(newPosition, movedItemMetadata.ItemDataReference.InventorySizeX, movedItemMetadata.ItemDataReference.InventorySizeY);
 
-            if (!targetInventory.IsBoundsValid(newBounds, movedItem))
+            if (!targetInventory.IsBoundsValid(newBounds, movedItemMetadata))
                 return false;
 
-            MoveInventoryItem(movedItem, targetInventory, newBounds, newRotation);
+            MoveInventoryItem(movedItemMetadata, targetInventory, newBounds, newRotation);
 
             Debug("Move success!");
             return true;
@@ -138,7 +144,7 @@ namespace InventorySystem.Inventories
                 return false;
 
             // Check if there are any overlapping items.
-            foreach (InventoryItem item in _contents)
+            foreach (ItemMetadata item in _contents)
             {
                 if(item == null)
                     continue;
@@ -155,7 +161,7 @@ namespace InventorySystem.Inventories
         
         
         /// <returns>If given item is inside the inventory and does not overlap with any other item.</returns>
-        public bool IsBoundsValid(InventoryBounds itemBounds, InventoryItem itemToIgnore)
+        public bool IsBoundsValid(InventoryBounds itemBounds, ItemMetadata itemMetadataToIgnore)
         {
             // Check if the item fits within the inventory bounds.
             if (!_inventoryBounds.Contains(itemBounds))
@@ -165,17 +171,17 @@ namespace InventorySystem.Inventories
             }
 
             // Check if there are any overlapping items.
-            foreach (InventoryItem item in _contents)
+            foreach (ItemMetadata item in _contents)
             {
                 if(item == null)
                     continue;
                 
-                if(item == itemToIgnore)
+                if(item == itemMetadataToIgnore)
                     continue;
                 
                 if (itemBounds.OverlapsWith(item.Bounds))
                 {
-                    Debug($"Detected overlap with {item.Item.Name}@{item.Position}!");
+                    Debug($"Detected overlap with {item.ItemDataReference.Name}@{item.Bounds.Position}!");
                     return false;
                 }
             }
@@ -184,7 +190,7 @@ namespace InventorySystem.Inventories
         }
 
 
-        private InventoryItem CreateNewInventoryItem(ItemData itemData)
+        private ItemMetadata CreateNewInventoryItem(ItemData itemData)
         {
             foreach (Vector2Int position in _inventoryBounds.AllPositionsWithin())
             {
@@ -192,49 +198,49 @@ namespace InventorySystem.Inventories
                 InventoryBounds itemBoundsRotated = new(position, itemData.InventorySizeY, itemData.InventorySizeX);
                 
                 if (IsBoundsValid(itemBounds))
-                    return new InventoryItem(itemData, itemBounds, ItemRotation.DEG_0);
+                    return new ItemMetadata(itemData, itemBounds, ItemRotation.DEG_0);
                 
                 if (IsBoundsValid(itemBoundsRotated))
-                    return new InventoryItem(itemData, itemBoundsRotated, ItemRotation.DEG_90);
+                    return new ItemMetadata(itemData, itemBoundsRotated, ItemRotation.DEG_90);
             }
 
             return null;
         }
 
 
-        private void AddInventoryItem(InventoryItem item)
+        private void AddInventoryItem(ItemMetadata itemMetadata)
         {
-            _contents[PositionToIndex(item.Bounds.Position)] = item;
+            _contents[PositionToIndex(itemMetadata.Bounds.Position)] = itemMetadata;
             
-            AddedItem?.Invoke(this, item);
+            AddedItem?.Invoke(this, itemMetadata);
         }
 
 
-        private void RemoveInventoryItem(InventoryItem item)
+        private void RemoveInventoryItem(ItemMetadata itemMetadata)
         {
-            _contents[PositionToIndex(item.Bounds.Position)] = null;
+            _contents[PositionToIndex(itemMetadata.Bounds.Position)] = null;
             
-            RemovedItem?.Invoke(this, item);
+            RemovedItem?.Invoke(this, itemMetadata);
         }
 
 
-        private void MoveInventoryItem(InventoryItem item, Inventory toInventory, InventoryBounds newBounds, ItemRotation newRotation)
+        private void MoveInventoryItem(ItemMetadata itemMetadata, Inventory toInventory, InventoryBounds newBounds, ItemRotation newRotation)
         {
-            Vector2Int oldPos = item.Bounds.Position;
+            Vector2Int oldPos = itemMetadata.Bounds.Position;
             Vector2Int newPos = newBounds.Position;
             int oldIndex = PositionToIndex(oldPos);
             int newIndex = toInventory.PositionToIndex(newPos);
             
             _contents[oldIndex] = null;
-            toInventory._contents[newIndex] = item;
+            toInventory._contents[newIndex] = itemMetadata;
             
-            item.UpdateBounds(newBounds, newRotation);
+            itemMetadata.UpdateBounds(newBounds, newRotation);
             
-            MovedItem?.Invoke(this, toInventory, item, oldPos, newPos);
+            MovedItem?.Invoke(this, toInventory, itemMetadata, oldPos, newPos);
         }
 
 
-        private InventoryItem GetInventoryItemAt(Vector2Int pos) => _contents[PositionToIndex(pos)];
+        private ItemMetadata GetInventoryItemAt(Vector2Int pos) => _contents[PositionToIndex(pos)];
         
         private int PositionToIndex(Vector2Int pos) => pos.y * _inventoryBounds.Width + pos.x;
         

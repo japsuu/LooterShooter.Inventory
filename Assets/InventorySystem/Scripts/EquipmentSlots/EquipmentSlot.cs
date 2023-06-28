@@ -28,13 +28,13 @@ namespace InventorySystem.EquipmentSlots
         }
 
 
-        public bool IsBoundsValid(InventoryBounds itemBounds, InventoryItem thisItem)
+        public bool IsBoundsValid(InventoryBounds itemBounds, ItemMetadata thisItemMetadata)
         {
-            
+            return true;
         }
 
 
-        private bool IsItemAllowed(InventoryItem item)
+        /*private bool IsItemAllowed(InventoryItem item)
         {
             if (_itemType == ItemType.Nothing)
                 return false;
@@ -53,6 +53,6 @@ namespace InventorySystem.EquipmentSlots
             ItemData data = thisItem.Item;
             if (data is ClothingItem)
                 return ItemType.Clothing;
-        }
+        }*/
     }
 }
