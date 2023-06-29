@@ -1,4 +1,5 @@
-﻿using InventorySystem.Inventories.Items;
+﻿using System;
+using InventorySystem.Inventories.Items;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -14,7 +15,8 @@ namespace InventorySystem.Inventories.Rendering
         [SerializeField] private RectTransform _contentsRoot;
         [SerializeField] private Image _itemImage;
         [SerializeField] private float _rotationSpeed = 20f;
-
+        [SerializeField] private bool _showValidatorWhenDropTargetMissing;
+        
         // Private fields: Initialization.
         private ItemMetadata _itemReference;
         private Inventory _containingInventory;
@@ -30,7 +32,6 @@ namespace InventorySystem.Inventories.Rendering
         private Vector2 _dragStartObjectPosition;
         private float _targetContentRotation;
         private bool _isUserDragging;
-        private readonly Vector3[] _rectCornersArray = new Vector3[4];
 
         public ItemMetadata ItemReference => _itemReference;
 
@@ -238,9 +239,16 @@ namespace InventorySystem.Inventories.Rendering
             }
             else
             {
-                Vector2 snappedPosition = Utilities.SnapPositionToInventoryGrid(_rectTransform.anchoredPosition);
-                DraggableItemHighlighter.Singleton.UpdatePosition(
-                    ((RectTransform)_rectTransform.parent).GetScreenSpacePosition(snappedPosition), this);
+                if (_showValidatorWhenDropTargetMissing)
+                {
+                    Vector2 snappedPosition = Utilities.SnapPositionToInventoryGrid(_rectTransform.anchoredPosition);
+                    DraggableItemHighlighter.Singleton.UpdatePosition(
+                        ((RectTransform)_rectTransform.parent).GetScreenSpacePosition(snappedPosition), this);
+                }
+                else
+                {
+                    DraggableItemHighlighter.Singleton.Hide();
+                }
             }
         }
 
@@ -267,15 +275,24 @@ namespace InventorySystem.Inventories.Rendering
         [CanBeNull]
         private InventoryRenderer GetInventoryRendererBelow()
         {
-            // Raycast all corners to check if they have the same inventory.
-            _rectTransform.GetWorldCorners(_rectCornersArray);
-            
-            foreach (Vector3 corner in _rectCornersArray)
-            {
-                InventoryGrid current = Utilities.GetFirstComponentBelow<InventoryGrid>(corner);
+            // Raycast all cells to check if they have the same inventory.
+            int itemSizeX = _itemReference.ItemDataReference.InventorySizeX;
+            int itemSizeY = _itemReference.ItemDataReference.InventorySizeY;
+            const float halfCellSize = Utilities.INVENTORY_SLOT_SIZE / 2f;
 
-                if (current != null)
-                    return current.InventoryRenderer;
+            for (int y = 0; y < itemSizeY; y++)
+            {
+                for (int x = 0; x < itemSizeX; x++)
+                {
+                    Vector2 cellCenter = new(
+                        _rectTransform.position.x + halfCellSize + x * Utilities.INVENTORY_SLOT_SIZE,
+                        _rectTransform.position.y - (halfCellSize + y * Utilities.INVENTORY_SLOT_SIZE));
+                    
+                    InventoryGrid current = Utilities.GetFirstComponentBelow<InventoryGrid>(cellCenter);
+
+                    if (current != null)
+                        return current.InventoryRenderer;
+                }
             }
 
             return null;

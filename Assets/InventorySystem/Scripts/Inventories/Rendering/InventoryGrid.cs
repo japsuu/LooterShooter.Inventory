@@ -40,6 +40,7 @@ namespace InventorySystem.Inventories.Rendering
 
         protected override void HandleDroppedDraggableItem(DraggableItem draggableItem)
         {
+            // TODO: get draggable position, and convert it into an inventory position. -> Try to transfer to inventory.
             throw new System.NotImplementedException();
         }
     }

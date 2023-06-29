@@ -57,12 +57,14 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void UpdatePosition(Vector2 anchoredPosition, DraggableItem draggableItem)
+        public void UpdatePosition(Vector2 position, DraggableItem draggableItem)
         {
             _validatorImage.enabled = true;
             //_rectTransform.anchoredPosition = anchoredPosition;
-            _rectTransform.position = anchoredPosition;
+            _rectTransform.position = position;
 
+            //BUG: Should set color based on DraggableItemReceiverObject state
+            //fixpls
             bool isValidPosition = draggableItem.IsBoundsValid();
             _validatorImage.color = isValidPosition ? _validPositionColor : _invalidPositionColor;
         }
