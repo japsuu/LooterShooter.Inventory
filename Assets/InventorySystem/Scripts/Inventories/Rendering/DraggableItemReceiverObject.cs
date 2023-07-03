@@ -1,14 +1,21 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace InventorySystem.Inventories.Rendering
 {
-    public abstract class DraggableItemReceiverObject : MonoBehaviour, IEndDragHandler
+    [RequireComponent(typeof(RectTransform))]
+    public abstract class DraggableItemReceiverObject : MonoBehaviour
     {
-        public void OnEndDrag(PointerEventData eventData)
+        public RectTransform RectTransform { get; private set; }
+
+
+        protected virtual void Awake()
         {
-            DraggableItem draggedItem = eventData.pointerDrag.GetComponent<DraggableItem>();
-            
+            RectTransform = GetComponent<RectTransform>();
+        }
+
+
+        public void OnEndDrag(DraggableItem draggedItem)
+        {
             if(draggedItem == null)
                 return;
             

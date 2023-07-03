@@ -9,8 +9,9 @@ namespace InventorySystem.Inventories.Rendering
     {
         public static DraggableItemHighlighter Singleton;
         
-        [SerializeField] private Color _validPositionColor = new Color(0f, 1f, 0f, 0.4f);
-        [SerializeField] private Color _invalidPositionColor = new Color(1f, 0f, 0f, 0.4f);
+        [SerializeField] private Color _validPositionColor = new(0f, 1f, 0f, 0.4f);
+        [SerializeField] private Color _invalidPositionColor = new(1f, 0f, 0f, 0.4f);
+        [SerializeField] private bool _showAlsoWhenNoDropTarget;
         
         private RectTransform _rectTransform;
         private Image _validatorImage;
@@ -42,30 +43,44 @@ namespace InventorySystem.Inventories.Rendering
 
 
         public void UpdateSize(float width, float height)
-        {
+        {//BUG: Check usages
             _validatorImage.enabled = true;
             
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
-            
-            //_rectTransform.SetParent(entity.transform.parent);
-            // int targetIndex = entity.RectTransform.GetSiblingIndex() - 1;
-            // if(targetIndex < 1)
-            //     entity.RectTransform.SetSiblingIndex(targetIndex + 2);
-            // else
-            //     _rectTransform.SetSiblingIndex(targetIndex);
         }
 
 
-        public void UpdatePosition(Vector2 position, DraggableItem draggableItem)
+        public void UpdatePosition(DraggableItem draggableItem, DraggableItemReceiverObject belowReceiver)
         {
+            Vector2 position;
+            if (belowReceiver != null)
+            {
+                Vector2 relativeAnchoredPos = Utilities.GetAnchoredPositionRelativeToRect(draggableItem.RectTransform.position, belowReceiver.RectTransform);
+                Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeAnchoredPos);
+                Vector2 screenSpacePos = belowReceiver.RectTransform.GetScreenSpacePosition(snappedPos);
+
+                position = screenSpacePos;
+            }
+            else
+            {
+                if (_showAlsoWhenNoDropTarget)
+                {
+                    Vector2 snappedPosition = Utilities.SnapPositionToInventoryGrid(draggableItem.RectTransform.anchoredPosition);
+                    position = ((RectTransform)draggableItem.RectTransform.parent).GetScreenSpacePosition(snappedPosition);
+                }
+                else
+                {
+                    Hide();
+                    return;
+                }
+            }
+            
             _validatorImage.enabled = true;
             //_rectTransform.anchoredPosition = anchoredPosition;
             _rectTransform.position = position;
 
-            //BUG: Should set color based on DraggableItemReceiverObject state
-            //fixpls
-            bool isValidPosition = draggableItem.IsBoundsValid();
+            bool isValidPosition = belowReceiver.CanDropDraggableItem(draggableItem);
             _validatorImage.color = isValidPosition ? _validPositionColor : _invalidPositionColor;
         }
     }

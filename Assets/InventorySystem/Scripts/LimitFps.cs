@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace LooterShooter.DevTools
+namespace InventorySystem
 {
     public class LimitFps : MonoBehaviour
     {

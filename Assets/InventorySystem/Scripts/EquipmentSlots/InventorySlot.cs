@@ -14,7 +14,7 @@ namespace InventorySystem.EquipmentSlots
         {
             foreach (ItemType restriction in _itemTypeRestrictions)
             {
-                if (restriction == draggableItem.ItemReference.ItemDataReference.ItemType)
+                if (restriction == draggableItem.InventoryItem.ItemDataReference.ItemType)
                     return true;
             }
 

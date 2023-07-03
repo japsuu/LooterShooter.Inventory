@@ -15,21 +15,17 @@ namespace InventorySystem.Inventories.Rendering
         [SerializeField] private DraggableItem _draggableItemPrefab;
 
         // Private fields.
-        private Dictionary<ItemMetadata, DraggableItem> _entities;
+        private Dictionary<InventoryItem, DraggableItem> _entities;
+        private Inventory _targetInventory;
         
         // Public fields.
-        public Inventory TargetInventory { get; private set; }
-        public RectTransform EntityRootTransform => _entityRootTransform;
+        //public RectTransform EntityRootTransform => _entityRootTransform;
 
 
         private void Awake()
         {
             _entities = new();
-        }
-
-
-        private void Start()
-        {
+            
             // Destroy all children >:).
             for (int i = _entityRootTransform.childCount - 1; i >= 0; i--)
             {
@@ -40,39 +36,42 @@ namespace InventorySystem.Inventories.Rendering
 
         public void RenderInventory(Inventory inventory, string inventoryName)
         {
-            if (TargetInventory != null)
+            if (_targetInventory != null)
                 StopRenderInventory();
 
+            gameObject.name = $"InventoryRenderer: {inventoryName}";
             _inventoryNameText.text = inventoryName;
             
-            TargetInventory = inventory;
+            _targetInventory = inventory;
 
-            float width = TargetInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
-            float height = TargetInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
+            float width = _targetInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
+            float height = _targetInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
 
             // Resize the slots image.
-            _inventoryGrid.Initialize(this, width, height);
+            _inventoryGrid.Initialize(_targetInventory, width, height);
 
-            foreach (ItemMetadata item in TargetInventory.GetItems())
+            foreach (InventoryItem item in _targetInventory.GetAllItems())
             {
-                CreateNewEntityForItem(item);
+                CreateNewDraggableItem(item);
             }
         }
 
 
-        public void CreateNewEntityForItem(ItemMetadata itemMetadata)
+        public void CreateNewDraggableItem(InventoryItem inventoryItem)
         {
             DraggableItem draggableItem = Instantiate(_draggableItemPrefab, _entityRootTransform);
 
-            draggableItem.Initialize(itemMetadata, TargetInventory);
+            draggableItem.Initialize(inventoryItem);
             
-            _entities.Add(itemMetadata, draggableItem);
+            _entities.Add(inventoryItem, draggableItem);
+            
+            Logger.Log(LogLevel.DEBUG, gameObject.name, $"CreateNewDraggable '{inventoryItem.ItemDataReference.Name}'@{inventoryItem.Bounds.Position}");
         }
 
 
-        public void RemoveEntityOfItem(ItemMetadata itemMetadata)
+        public void RemoveEntityOfItem(InventoryItem inventoryItemSnapshot)
         {
-            if (_entities.Remove(itemMetadata, out DraggableItem entity))
+            if (_entities.Remove(inventoryItemSnapshot, out DraggableItem entity))
             {
                 if(entity != null)
                     Destroy(entity.gameObject);
@@ -88,7 +87,7 @@ namespace InventorySystem.Inventories.Rendering
 
         private void RemoveAllEntities()
         {
-            foreach (ItemMetadata item in _entities.Keys)
+            foreach (InventoryItem item in _entities.Keys)
             {
                 if(_entities[item] != null)
                     Destroy(_entities[item].gameObject);

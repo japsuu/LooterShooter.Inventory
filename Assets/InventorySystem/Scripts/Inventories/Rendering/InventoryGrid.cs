@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using InventorySystem.Inventories.Items;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace InventorySystem.Inventories.Rendering
@@ -10,18 +11,20 @@ namespace InventorySystem.Inventories.Rendering
         
         private Image _slotsImage;
 
-        public InventoryRenderer InventoryRenderer { get; private set; }
+        private Inventory _targetInventory;
 
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
+            
             _slotsImage = GetComponent<Image>();
         }
 
 
-        public void Initialize(InventoryRenderer inventoryRenderer, float width, float height)
+        public void Initialize(Inventory targetInventory, float width, float height)
         {
-            InventoryRenderer = inventoryRenderer;
+            _targetInventory = targetInventory;
             
             // Resize the grid.
             _inventoryLayoutElement.minWidth = width;
@@ -34,14 +37,18 @@ namespace InventorySystem.Inventories.Rendering
 
         public override bool CanDropDraggableItem(DraggableItem draggableItem)
         {
-            throw new System.NotImplementedException();
+            return _targetInventory.IsBoundsValid(draggableItem.GetBounds(RectTransform), draggableItem.InventoryItem.Bounds);
         }
 
 
         protected override void HandleDroppedDraggableItem(DraggableItem draggableItem)
         {
-            // TODO: get draggable position, and convert it into an inventory position. -> Try to transfer to inventory.
-            throw new System.NotImplementedException();
+            Vector2 relativeAnchoredPosition = Utilities.GetAnchoredPositionRelativeToRect(draggableItem.RectTransform.position, RectTransform);
+            Vector2Int newPosition = Utilities.GetInventoryGridPosition(relativeAnchoredPosition);
+            ItemRotation newRotation = draggableItem.Rotation;
+            Inventory newInventory = _targetInventory;
+
+            draggableItem.InventoryItem.RequestMove(newInventory, newPosition, newRotation);
         }
     }
 }

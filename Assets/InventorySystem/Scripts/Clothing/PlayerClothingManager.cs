@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using InventorySystem.Inventories;
+using InventorySystem.Inventories.Items;
 using UnityEngine;
 
 namespace InventorySystem.Clothing

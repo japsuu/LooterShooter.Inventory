@@ -23,6 +23,15 @@ namespace InventorySystem.Inventories
             float y = Mathf.Round(position.y / INVENTORY_SLOT_SIZE) * INVENTORY_SLOT_SIZE;
             return new Vector2(x, y);
         }
+        
+        
+        public static Vector2 GetAnchoredPositionRelativeToRect(Vector3 worldPoint, RectTransform relativeTo)
+        {
+            Vector2 screenP = RectTransformUtility.WorldToScreenPoint(null, worldPoint);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(relativeTo, screenP, null, out Vector2 relativePoint);
+
+            return relativePoint;
+        }
 
 
         public static T GetFirstComponentBelow<T>(Vector2 screenSpacePosition) where T : MonoBehaviour

@@ -23,36 +23,6 @@ namespace InventorySystem.Inventories
             Height = height;
             Position = position;
             _extent = new Vector2Int(Position.x + Width, Position.y + Height);
-
-            /*switch (rotation)
-            {
-                case ItemRotation.DEG_0:
-                    Width = width;
-                    Height = height;
-                    Position = position;
-                    _extent = new Vector2Int(Position.x + Width, Position.y + Height);
-                    break;
-                case ItemRotation.DEG_90:
-                    Width = height;
-                    Height = width;
-                    Position = new Vector2Int(position.x - height, position.y);
-                    _extent = new Vector2Int(position.x, position.y + width);
-                    break;
-                case ItemRotation.DEG_180:
-                    Width = width;
-                    Height = height;
-                    Position = new Vector2Int(position.x + width, position.y + height);
-                    _extent = position;
-                    break;
-                case ItemRotation.DEG_270:
-                    Width = height;
-                    Height = width;
-                    Position = new Vector2Int(position.x, position.y - width);
-                    _extent = new Vector2Int(position.x + height, position.y);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(rotation), rotation, null);
-            }*/
         }
 
 
