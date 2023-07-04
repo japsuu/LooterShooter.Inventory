@@ -17,34 +17,28 @@ namespace InventorySystem.InventorySlots
         private InventoryItem _assignedItem;
 
 
-        public void RequestMoveItem(Vector2Int boundsPosition, Vector2Int newPos, ItemRotation newRotation, IInventory targetInventory)
+        public void RequestMoveItem(Vector2Int oldPosition, Vector2Int newPosition, ItemRotation newRotation, IInventory targetInventory)
         {
-            throw new System.NotImplementedException();
+            targetInventory.ReceiveExistingInventoryItem(_assignedItem, )
         }
 
 
-        public bool IsPositionInsideInventory(Vector2Int position)
-        {
-            throw new System.NotImplementedException();
-        }
+        public bool IsPositionInsideInventory(Vector2Int position) => true;
 
 
         public bool TryGetItemAtPosition(Vector2Int position, out InventoryItem item)
         {
-            throw new System.NotImplementedException();
+            item = _assignedItem;
+            return _assignedItem != null;
         }
 
 
-        public bool IsItemBoundsValid(InventoryBounds itemBounds, InventoryBounds? existingBoundsToIgnore = null)
-        {
-            throw new System.NotImplementedException();
-        }
+        public bool IsItemBoundsValid(InventoryBounds itemBounds, InventoryBounds? existingBoundsToIgnore = null) => true;
 
 
-        public InventoryItem TransferExistingInventoryItem(InventoryItem existingItem, InventoryBounds bounds, ItemRotation rotation)
+        public InventoryItem ReceiveExistingInventoryItem(InventoryItem existingItem, InventoryBounds bounds, ItemRotation rotation)
         {
-            _assignedItem = new InventoryItem(existingItem.Metadata, bounds, rotation);
-            _assignedItem.AssignInventory(this);
+            _assignedItem = new InventoryItem(existingItem.Metadata, bounds, rotation, this);
             return _assignedItem;
         }
 

@@ -161,6 +161,7 @@ namespace InventorySystem.Inventories
                 return results;
             }
 
+
             for (int i = 0; i < count; i++)
             {
                 InventoryItem newItem = CreateNewInventoryItemForThisInventory(metadata);
@@ -212,15 +213,13 @@ namespace InventorySystem.Inventories
 
                 if (IsItemBoundsValid(itemBounds))
                 {
-                    InventoryItem newItem = new(metadata, itemBounds, ItemRotation.DEG_0);
-                    newItem.AssignInventory(this);
+                    InventoryItem newItem = new(metadata, itemBounds, ItemRotation.DEG_0, this);
                     return newItem;
                 }
                 
                 if (IsItemBoundsValid(itemBoundsRotated))
                 {
-                    InventoryItem newItem = new(metadata, itemBoundsRotated, ItemRotation.DEG_90);
-                    newItem.AssignInventory(this);
+                    InventoryItem newItem = new(metadata, itemBoundsRotated, ItemRotation.DEG_90, this);
                     return newItem;
                 }
             }
@@ -264,8 +263,7 @@ namespace InventorySystem.Inventories
             
             if (oldItemPosition == newItemPosition && movedItem.RotationInInventory == newRotation && targetInventory == this)
                 return false;
-
-
+            
             if (targetInventory.TryGetItemAtPosition(newItemPosition, out InventoryItem blockingItem) && blockingItem != movedItem)
             {
                 //TODO: Implement item swapping (swap the two items with each other if possible)
@@ -308,7 +306,7 @@ namespace InventorySystem.Inventories
             
             _contents[oldIndex] = null;
             
-            InventoryItem newInventoryItem = newInventory.TransferExistingInventoryItem(oldInventoryItem, newBounds, newRotation);
+            InventoryItem newInventoryItem = newInventory.ReceiveExistingInventoryItem(oldInventoryItem, newBounds, newRotation);
             
             Logger.Log(LogLevel.DEBUG, $"Inventory '{Name}' moved {oldInventoryItem.Metadata.ItemData.Name}: {oldInventoryItem.Bounds.Position} -> {newBounds.Position}");
 
@@ -316,14 +314,13 @@ namespace InventorySystem.Inventories
         }
 
 
-        public InventoryItem TransferExistingInventoryItem(InventoryItem existingItem, InventoryBounds bounds, ItemRotation rotation)
+        public InventoryItem ReceiveExistingInventoryItem(InventoryItem existingItem, InventoryBounds bounds, ItemRotation rotation)
         {
             // Get the index of the position.
             int newIndex = PositionToIndex(bounds.Position);
             
             // Create a copy and assign it to the contents.
-            InventoryItem newInventoryItem = new(existingItem.Metadata, bounds, rotation);
-            newInventoryItem.AssignInventory(this);
+            InventoryItem newInventoryItem = new(existingItem.Metadata, bounds, rotation, this);
             _contents[newIndex] = newInventoryItem;
             return newInventoryItem;
         }

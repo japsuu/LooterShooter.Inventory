@@ -67,7 +67,7 @@ namespace InventorySystem.Inventories
             for (int i = 0; i < contentsArray.Count; i++)
             {
                 contents[i] = contentsArray[i].ToObject<InventoryItem>(serializer);
-                contents[i].AssignInventory(spatialInventory);
+                contents[i].OverwriteContainingInventory(spatialInventory);
             }
             
             // Override inventory contents with loaded contents.

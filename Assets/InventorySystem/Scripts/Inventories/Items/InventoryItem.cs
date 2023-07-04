@@ -12,11 +12,12 @@ namespace InventorySystem.Inventories.Items
         public readonly ItemRotation RotationInInventory;
 
 
-        public InventoryItem(ItemMetadata itemMetadata, InventoryBounds bounds, ItemRotation rotationInInventory)
+        public InventoryItem(ItemMetadata itemMetadata, InventoryBounds bounds, ItemRotation rotationInInventory, IInventory containingInventory)
         {
             Metadata = itemMetadata;
             Bounds = bounds;
             RotationInInventory = rotationInInventory;
+            ContainingInventory = containingInventory;
         }
 
 
@@ -26,7 +27,7 @@ namespace InventorySystem.Inventories.Items
         }
 
 
-        public void AssignInventory(IInventory containingInventory)
+        public void OverwriteContainingInventory(IInventory containingInventory)
         {
             ContainingInventory = containingInventory;
         }

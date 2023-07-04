@@ -8,7 +8,7 @@ namespace InventorySystem.Inventories
         public string Name { get; }
         
         
-        public void RequestMoveItem(Vector2Int boundsPosition, Vector2Int newPos, ItemRotation newRotation, IInventory targetInventory);
+        public void RequestMoveItem(Vector2Int oldPosition, Vector2Int newPosition, ItemRotation newRotation, IInventory targetInventory);
 
         
         public bool IsPositionInsideInventory(Vector2Int position);
@@ -20,6 +20,6 @@ namespace InventorySystem.Inventories
         public bool IsItemBoundsValid(InventoryBounds itemBounds, InventoryBounds? existingBoundsToIgnore = null);
 
 
-        public InventoryItem TransferExistingInventoryItem(InventoryItem existingItem, InventoryBounds bounds, ItemRotation rotation);
+        public InventoryItem ReceiveExistingInventoryItem(InventoryItem existingItem, InventoryBounds bounds, ItemRotation rotation);
     }
 }

@@ -60,7 +60,7 @@ namespace InventorySystem.Inventories.Items
             
             InventoryBounds bounds = new(new Vector2Int(posX, posY), width, height);
 
-            return new InventoryItem(metadata, bounds, rotationInInventory);
+            return new InventoryItem(metadata, bounds, rotationInInventory, null);
         }
     }
 }
