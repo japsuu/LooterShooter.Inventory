@@ -65,10 +65,10 @@ namespace InventorySystem.Inventories.Rendering
 
         public void Initialize(InventoryItem inventoryItem)
         {
-            gameObject.name = $"{nameof(DraggableItem)}: {inventoryItem.ItemDataReference.Name}";
+            gameObject.name = $"{nameof(DraggableItem)}: {inventoryItem.Metadata.ItemData.Name}";
             InventoryItem = inventoryItem;
             
-            _itemImage.sprite = inventoryItem.ItemDataReference.Sprite;
+            _itemImage.sprite = inventoryItem.Metadata.ItemData.Sprite;
             
             ResetVisuals();
 
@@ -80,8 +80,8 @@ namespace InventorySystem.Inventories.Rendering
         public InventoryBounds GetBounds(RectTransform positionRelativeTo)
         {
             bool isRotated = Rotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = InventoryItem.ItemDataReference.InventorySizeX;
-            int itemSizeY = InventoryItem.ItemDataReference.InventorySizeY;
+            int itemSizeX = InventoryItem.Metadata.ItemData.InventorySizeX;
+            int itemSizeY = InventoryItem.Metadata.ItemData.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
 
@@ -125,8 +125,8 @@ namespace InventorySystem.Inventories.Rendering
             // Root object size:
             // If the object is rotated, we need to flip width and height.
             bool isRotated = Rotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = InventoryItem.ItemDataReference.InventorySizeX;
-            int itemSizeY = InventoryItem.ItemDataReference.InventorySizeY;
+            int itemSizeX = InventoryItem.Metadata.ItemData.InventorySizeX;
+            int itemSizeY = InventoryItem.Metadata.ItemData.InventorySizeY;
             int itemWidth = isRotated ? itemSizeY : itemSizeX;
             int itemHeight = isRotated ? itemSizeX : itemSizeY;
             
@@ -245,8 +245,8 @@ namespace InventorySystem.Inventories.Rendering
         private DraggableItemReceiverObject GetDraggableReceiverBelow()
         {
             // Raycast all cells to check if they have the same inventory.
-            int itemSizeX = InventoryItem.ItemDataReference.InventorySizeX;
-            int itemSizeY = InventoryItem.ItemDataReference.InventorySizeY;
+            int itemSizeX = InventoryItem.Metadata.ItemData.InventorySizeX;
+            int itemSizeY = InventoryItem.Metadata.ItemData.InventorySizeY;
             const float halfCellSize = Utilities.INVENTORY_SLOT_SIZE / 2f;
 
             for (int y = 0; y < itemSizeY; y++)

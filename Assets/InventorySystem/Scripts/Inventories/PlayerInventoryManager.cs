@@ -1,21 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using InventorySystem.Inventories.Items;
 using InventorySystem.Inventories.Rendering;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace InventorySystem.Inventories
 {
     /// <summary>
-    /// Controls multiple child <see cref="Inventory"/>s.TODO: Split to manager and an event-based renderer.
+    /// Controls multiple child <see cref="SpatialInventory"/>s.TODO: Split to manager and an event-based renderer.
     /// </summary>
     [DefaultExecutionOrder(-101)]
     public class PlayerInventoryManager : MonoBehaviour
     {
         public static PlayerInventoryManager Singleton;
         
+        [FormerlySerializedAs("_inventoryRendererPrefab")]
         [Header("References")]
-        [SerializeField] private InventoryRenderer _inventoryRendererPrefab;
+        [SerializeField] private SpatialInventoryRenderer _spatialInventoryRendererPrefab;
         [SerializeField] private RectTransform _inventoryRenderersRoot;
         
         [Header("Base Inventory")]
@@ -23,8 +24,8 @@ namespace InventorySystem.Inventories
         [SerializeField, Min(0)] private int _baseInventoryWidth = 8;
         [SerializeField, Min(0)] private int _baseInventoryHeight = 4;
         
-        private Dictionary<string, Inventory> _inventories;
-        private Dictionary<string, InventoryRenderer> _renderers;
+        private Dictionary<string, SpatialInventory> _inventories;
+        private Dictionary<string, SpatialInventoryRenderer> _renderers;
 
 
         private void Awake()
@@ -64,51 +65,51 @@ namespace InventorySystem.Inventories
             if(width < 1 || height < 1)
                 return;
             
-            Inventory inventory = new(inventoryName, width, height);
+            SpatialInventory spatialInventory = new(inventoryName, width, height);
             
-            InventoryRenderer inventoryRenderer = Instantiate(_inventoryRendererPrefab, _inventoryRenderersRoot);
-            inventoryRenderer.RenderInventory(inventory, inventoryName);
+            SpatialInventoryRenderer spatialInventoryRenderer = Instantiate(_spatialInventoryRendererPrefab, _inventoryRenderersRoot);
+            spatialInventoryRenderer.RenderInventory(spatialInventory, inventoryName);
             
-            inventory.AddedItem += OnAddedItem;
-            inventory.MovedItem += OnMovedItem;
-            inventory.RemovedItem += OnRemovedItem;
+            spatialInventory.AddedItem += OnAddedItem;
+            spatialInventory.MovedItem += OnMovedItem;
+            spatialInventory.RemovedItem += OnRemovedItem;
 
-            _inventories.Add(inventoryName, inventory);
-            _renderers.Add(inventoryName, inventoryRenderer);
+            _inventories.Add(inventoryName, spatialInventory);
+            _renderers.Add(inventoryName, spatialInventoryRenderer);
             
-            Logger.Log(LogLevel.DEBUG, $"{nameof(Inventory)}: {gameObject.name}", $"AddInventory '{inventory}'");
+            Logger.Log(LogLevel.DEBUG, $"{nameof(SpatialInventory)}: {gameObject.name}", $"AddInventory '{spatialInventory}'");
         }
 
 
-        private void OnAddedItem(Inventory.AddItemEventArgs addItemEventArgs)
+        private void OnAddedItem(AddItemEventArgs addItemEventArgs)
         {
-            if (_renderers.TryGetValue(addItemEventArgs.AddedItem.ContainingInventory.Name, out InventoryRenderer inventoryRenderer))
+            if (_renderers.TryGetValue(addItemEventArgs.AddedItem.ContainingInventory.Name, out SpatialInventoryRenderer inventoryRenderer))
             {
                 inventoryRenderer.CreateNewDraggableItem(addItemEventArgs.AddedItem);
             }
         }
 
 
-        private void OnRemovedItem(Inventory.RemoveItemEventArgs removeItemEventArgs)
+        private void OnRemovedItem(RemoveItemEventArgs removeItemEventArgs)
         {
-            if (_renderers.TryGetValue(removeItemEventArgs.RemovedItem.ContainingInventory.Name, out InventoryRenderer inventoryRenderer))
+            if (_renderers.TryGetValue(removeItemEventArgs.RemovedItem.ContainingInventory.Name, out SpatialInventoryRenderer inventoryRenderer))
             {
                 inventoryRenderer.RemoveEntityOfItem(removeItemEventArgs.RemovedItem);
             }
         }
 
 
-        private void OnMovedItem(Inventory.MoveItemEventArgs moveItemEventArgs)
+        private void OnMovedItem(MoveItemEventArgs moveItemEventArgs)
         {
-            if (!_renderers.TryGetValue(moveItemEventArgs.OldItem.ContainingInventory.Name, out InventoryRenderer oldInventoryRenderer))
+            if (!_renderers.TryGetValue(moveItemEventArgs.OldItem.ContainingInventory.Name, out SpatialInventoryRenderer oldInventoryRenderer))
             {
-                Logger.Log(LogLevel.WARN, $"{nameof(Inventory)}: {gameObject.name}", "Could not get the renderer of the old inventory of a moved item.");
+                Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", "Could not get the renderer of the old inventory of a moved item.");
                 return;
             }
             
-            if (!_renderers.TryGetValue(moveItemEventArgs.NewItem.ContainingInventory.Name, out InventoryRenderer newInventoryRenderer))
+            if (!_renderers.TryGetValue(moveItemEventArgs.NewItem.ContainingInventory.Name, out SpatialInventoryRenderer newInventoryRenderer))
             {
-                Logger.Log(LogLevel.WARN, $"{nameof(Inventory)}: {gameObject.name}", "Could not get the renderer of the new inventory of a moved item.");
+                Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", "Could not get the renderer of the new inventory of a moved item.");
                 return;
             }
             
@@ -119,9 +120,9 @@ namespace InventorySystem.Inventories
 
         public void RemoveInventory(string inventoryName)
         {
-            if (!_inventories.Remove(inventoryName, out Inventory inventory))
+            if (!_inventories.Remove(inventoryName, out SpatialInventory inventory))
             {
-                Logger.Log(LogLevel.WARN, $"{nameof(Inventory)}: {gameObject.name}", $"Could not get the inventory with the given name ({inventoryName}).");
+                Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", $"Could not get the inventory with the given name ({inventoryName}).");
                 return;
             }
             
@@ -129,40 +130,47 @@ namespace InventorySystem.Inventories
             inventory.MovedItem -= OnMovedItem;
             inventory.RemovedItem -= OnRemovedItem;
                 
-            if (_renderers.Remove(inventoryName, out InventoryRenderer inventoryRenderer))
+            if (_renderers.Remove(inventoryName, out SpatialInventoryRenderer inventoryRenderer))
             {
                 Destroy(inventoryRenderer.gameObject);
             }
                 
             //TODO: Drop items to ground or something? Add them to the (possible) new inventory that replaced this?
-            Logger.Log(LogLevel.WARN, $"{nameof(Inventory)}: {gameObject.name}", "NotImplemented: I have no idea what to do with the items from the inventory you just removed!");
+            Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", "NotImplemented: I have no idea what to do with the items from the inventory you just removed!");
         }
 
 
-        public List<InventoryItem> TryAddItems(ItemData itemData, int count)
+        public List<InventoryItem> TryAddItems(ItemMetadata metadata, int count)
         {
             List<InventoryItem> results = new();
-            foreach (Inventory inventory in _inventories.Values)
+            foreach (SpatialInventory inventory in _inventories.Values)
             {
                 if (results.Count == count)
                     return results;
                 
-                results.AddRange(inventory.TryAddItems(itemData, count));
+                results.AddRange(inventory.RequestAddItems(metadata, count));
             }
 
             return results;
         }
 
 
-        public List<InventoryItem> TryRemoveItems(ItemData itemData, int count)
+        /// <summary>
+        /// Tries to remove the given amount of defined itemData.
+        /// We're using pure <see cref="ItemData"/> instead of <see cref="ItemMetadata"/>, since when removing items we probably do not care about the metadata of an item.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public List<InventoryItem> TryRemoveItems(ItemData data, int count)
         {
             List<InventoryItem> results = new();
-            foreach (Inventory inventory in _inventories.Values)
+            foreach (SpatialInventory inventory in _inventories.Values)
             {
                 if (results.Count == count)
                     return results;
                 
-                results.AddRange(inventory.TryRemoveItems(itemData, count));
+                results.AddRange(inventory.RequestRemoveItems(data, count));
             }
 
             return results;
@@ -172,7 +180,7 @@ namespace InventorySystem.Inventories
         public List<InventoryItem> GetAllItemsOfType(ItemData itemData)
         {
             List<InventoryItem> results = new();
-            foreach (Inventory inventory in _inventories.Values)
+            foreach (SpatialInventory inventory in _inventories.Values)
             {
                 results.AddRange(inventory.GetAllItemsOfType(itemData));
             }

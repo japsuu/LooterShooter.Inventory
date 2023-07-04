@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace InventorySystem.Inventories
 {
     [System.Serializable]
-    public readonly struct JsonSerializableInventory
+    public readonly struct JsonSerializableSpatialInventory
     {
         [JsonProperty("inventoryName")]
         public readonly string InventoryName;
@@ -19,7 +19,7 @@ namespace InventorySystem.Inventories
         public readonly JsonSerializableInventoryItem[] Contents;
 
 
-        public JsonSerializableInventory(string inventoryName, int widthCells, int heightCells, JsonSerializableInventoryItem[] contents)
+        public JsonSerializableSpatialInventory(string inventoryName, int widthCells, int heightCells, JsonSerializableInventoryItem[] contents)
         {
             if (string.IsNullOrEmpty(inventoryName))
             {

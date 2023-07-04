@@ -6,7 +6,7 @@ using UnityEngine;
 namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(RectTransform))]
-    public class InventoryRenderer : MonoBehaviour
+    public class SpatialInventoryRenderer : MonoBehaviour
     {
         // Serialized fields.
         [SerializeField] private TMP_Text _inventoryNameText;
@@ -16,10 +16,7 @@ namespace InventorySystem.Inventories.Rendering
 
         // Private fields.
         private Dictionary<InventoryItem, DraggableItem> _entities;
-        private Inventory _targetInventory;
-        
-        // Public fields.
-        //public RectTransform EntityRootTransform => _entityRootTransform;
+        private SpatialInventory _targetSpatialInventory;
 
 
         private void Awake()
@@ -34,23 +31,23 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void RenderInventory(Inventory inventory, string inventoryName)
+        public void RenderInventory(SpatialInventory spatialInventory, string inventoryName)
         {
-            if (_targetInventory != null)
+            if (_targetSpatialInventory != null)
                 StopRenderInventory();
 
             gameObject.name = $"InventoryRenderer: {inventoryName}";
             _inventoryNameText.text = inventoryName;
             
-            _targetInventory = inventory;
+            _targetSpatialInventory = spatialInventory;
 
-            float width = _targetInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
-            float height = _targetInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
+            float width = _targetSpatialInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
+            float height = _targetSpatialInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
 
             // Resize the slots image.
-            _inventoryGrid.Initialize(_targetInventory, width, height);
+            _inventoryGrid.Initialize(_targetSpatialInventory, width, height);
 
-            foreach (InventoryItem item in _targetInventory.GetAllItems())
+            foreach (InventoryItem item in _targetSpatialInventory.GetAllItems())
             {
                 CreateNewDraggableItem(item);
             }
@@ -65,7 +62,7 @@ namespace InventorySystem.Inventories.Rendering
             
             _entities.Add(inventoryItem, draggableItem);
             
-            Logger.Log(LogLevel.DEBUG, gameObject.name, $"CreateNewDraggable '{inventoryItem.ItemDataReference.Name}'@{inventoryItem.Bounds.Position}");
+            Logger.Log(LogLevel.DEBUG, gameObject.name, $"CreateNewDraggable '{inventoryItem.Metadata.ItemData.Name}'@{inventoryItem.Bounds.Position}");
         }
 
 

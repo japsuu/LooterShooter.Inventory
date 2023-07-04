@@ -14,13 +14,13 @@ namespace InventorySystem
         
         private const string INVENTORY_SAVE_FILE_NAME = "inventory_snapshots.txt";
 
-        private Dictionary<string, JsonSerializableInventory> _loadedInventories;
-        private Dictionary<string, Inventory> _inventoriesToSave;
+        private Dictionary<string, JsonSerializableSpatialInventory> _loadedInventories;
+        private Dictionary<string, SpatialInventory> _spatialInventoriesToSave;
 
 
-        public void RegisterInventoryForSaving(Inventory toSave, string inventoryName)
+        public void RegisterSpatialInventoryForSaving(SpatialInventory toSave, string inventoryName)
         {
-            if (!_inventoriesToSave.TryAdd(inventoryName, toSave))
+            if (!_spatialInventoriesToSave.TryAdd(inventoryName, toSave))
             {
                 Logger.Log(
                     LogLevel.ERROR,
@@ -30,7 +30,7 @@ namespace InventorySystem
         }
 
 
-        public bool TryLoadSavedInventoryByName(string inventoryName, out JsonSerializableInventory result)
+        public bool TryLoadSpatialInventoryByName(string inventoryName, out JsonSerializableSpatialInventory result)
         {
             return _loadedInventories.TryGetValue(inventoryName, out result);
         }
@@ -47,7 +47,7 @@ namespace InventorySystem
             Singleton = this;
             
             _loadedInventories = new();
-            _inventoriesToSave = new();
+            _spatialInventoriesToSave = new();
             LoadInventories();
         }
 
@@ -68,11 +68,11 @@ namespace InventorySystem
                 return;
             }
             
-            List<JsonSerializableInventory> deserializedData = JsonConvert.DeserializeObject<List<JsonSerializableInventory>>(json);
+            List<JsonSerializableSpatialInventory> deserializedData = JsonConvert.DeserializeObject<List<JsonSerializableSpatialInventory>>(json);
 
-            _loadedInventories = new Dictionary<string, JsonSerializableInventory>();
+            _loadedInventories = new Dictionary<string, JsonSerializableSpatialInventory>();
 
-            foreach (JsonSerializableInventory inventory in deserializedData)
+            foreach (JsonSerializableSpatialInventory inventory in deserializedData)
             {
                 _loadedInventories.Add(inventory.InventoryName, inventory);
             }
@@ -81,9 +81,9 @@ namespace InventorySystem
 
         private void SaveInventories()
         {
-            List<JsonSerializableInventory> toSave = new();
+            List<JsonSerializableSpatialInventory> toSave = new();
 
-            foreach (KeyValuePair<string,Inventory> pair in _inventoriesToSave)
+            foreach (KeyValuePair<string,SpatialInventory> pair in _spatialInventoriesToSave)
             {
                 if(pair.Value == null)
                 {
@@ -126,6 +126,12 @@ namespace InventorySystem
         private static string GetFilePath(string fileName)
         {
             return Application.persistentDataPath + "/" + fileName;
+        }
+
+
+        public static void RegisterInventoryDestruction(SpatialInventory spatialInventory)
+        {
+            
         }
     }
 }

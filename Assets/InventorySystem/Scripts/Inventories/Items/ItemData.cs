@@ -1,5 +1,4 @@
-﻿using InventorySystem.EquipmentSlots;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace InventorySystem.Inventories.Items

@@ -11,7 +11,7 @@ namespace InventorySystem.Inventories.Rendering
         
         private Image _slotsImage;
 
-        private Inventory _targetInventory;
+        private SpatialInventory _targetSpatialInventory;
 
 
         protected override void Awake()
@@ -22,9 +22,9 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void Initialize(Inventory targetInventory, float width, float height)
+        public void Initialize(SpatialInventory targetSpatialInventory, float width, float height)
         {
-            _targetInventory = targetInventory;
+            _targetSpatialInventory = targetSpatialInventory;
             
             // Resize the grid.
             _inventoryLayoutElement.minWidth = width;
@@ -37,7 +37,7 @@ namespace InventorySystem.Inventories.Rendering
 
         public override bool CanDropDraggableItem(DraggableItem draggableItem)
         {
-            return _targetInventory.IsBoundsValid(draggableItem.GetBounds(RectTransform), draggableItem.InventoryItem.Bounds);
+            return _targetSpatialInventory.IsValidItemBounds(draggableItem.GetBounds(RectTransform), draggableItem.InventoryItem.Bounds);
         }
 
 
@@ -46,9 +46,9 @@ namespace InventorySystem.Inventories.Rendering
             Vector2 relativeAnchoredPosition = Utilities.GetAnchoredPositionRelativeToRect(draggableItem.RectTransform.position, RectTransform);
             Vector2Int newPosition = Utilities.GetInventoryGridPosition(relativeAnchoredPosition);
             ItemRotation newRotation = draggableItem.Rotation;
-            Inventory newInventory = _targetInventory;
+            SpatialInventory newSpatialInventory = _targetSpatialInventory;
 
-            draggableItem.InventoryItem.RequestMove(newInventory, newPosition, newRotation);
+            draggableItem.InventoryItem.RequestMove(newSpatialInventory, newPosition, newRotation);
         }
     }
 }

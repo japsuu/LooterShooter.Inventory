@@ -1,9 +1,6 @@
-﻿using InventorySystem.Inventories;
-using InventorySystem.Inventories.Items;
-using InventorySystem.Inventories.Rendering;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace InventorySystem.EquipmentSlots
+namespace InventorySystem.InventorySlots
 {
     public class SelectableInventorySlot : InventorySlot
     {

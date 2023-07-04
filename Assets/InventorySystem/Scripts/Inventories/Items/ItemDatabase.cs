@@ -32,6 +32,16 @@ namespace InventorySystem.Inventories.Items
         }
 
 
-        public bool TryGetItemById(int itemId, out ItemData item) => _database.TryGetValue(itemId, out item);
+        public bool TryGetItemById(int itemId, out ItemData item)
+        {
+            bool success = _database.TryGetValue(itemId, out item);
+
+            if (!success)
+            {
+                Logger.Log(LogLevel.FATAL, $"Cannot get reference to {nameof(ItemData)} with ID {itemId}!");
+            }
+            
+            return success;
+        }
     }
 }

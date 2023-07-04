@@ -7,7 +7,7 @@ namespace InventorySystem.Inventories.Rendering
 {
     public class InventoryTester : MonoBehaviour
     {
-        [SerializeField] private List<ItemData> _testItems;
+        [SerializeField] private List<ItemMetadata> _testItems;
         
         
         private void Update()
