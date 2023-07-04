@@ -17,7 +17,7 @@ namespace InventorySystem.Inventories
         public bool TryGetItemAtPosition(Vector2Int position, out InventoryItem item);
 
         
-        public bool IsValidItemBounds(InventoryBounds itemBounds, InventoryBounds? existingBoundsToIgnore = null);
+        public bool IsItemBoundsValid(InventoryBounds itemBounds, InventoryBounds? existingBoundsToIgnore = null);
 
 
         public InventoryItem TransferExistingInventoryItem(InventoryItem existingItem, InventoryBounds bounds, ItemRotation rotation);

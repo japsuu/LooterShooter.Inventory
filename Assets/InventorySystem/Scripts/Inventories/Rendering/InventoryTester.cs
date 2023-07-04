@@ -7,14 +7,16 @@ namespace InventorySystem.Inventories.Rendering
 {
     public class InventoryTester : MonoBehaviour
     {
-        [SerializeField] private List<ItemMetadata> _testItems;
+        [SerializeField] private List<ItemData> _testItems;
         
         
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.A))
             {
-                PlayerInventoryManager.Singleton.TryAddItems(_testItems[Random.Range(0, _testItems.Count)], 1);
+                ItemData itemData = _testItems[Random.Range(0, _testItems.Count)];
+                PlayerInventoryManager.Singleton.TryAddItems(new ItemMetadata(itemData), 1);
+                print($"tryadd: {itemData.Name}");
             }
         }
     }

@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using InventorySystem.Inventories.Items;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace InventorySystem.Inventories
 {
+    [JsonConverter(typeof(SpatialInventoryConverter))]
     public class SpatialInventory : IInventory
     {
         // Events.
@@ -27,29 +29,9 @@ namespace InventorySystem.Inventories
         /// </summary>
         public SpatialInventory(string inventoryName, int defaultWidthCells, int defaultHeightCells)
         {
-            if (Persistence.Singleton.TryLoadSpatialInventoryByName(inventoryName, out JsonSerializableSpatialInventory savedInventory))
-            {
-                Name = savedInventory.InventoryName;
-                _inventoryBounds = new InventoryBounds(Vector2Int.zero, savedInventory.WidthCells, savedInventory.HeightCells);
-                _contents = new InventoryItem[savedInventory.WidthCells * savedInventory.HeightCells];
-
-                foreach (JsonSerializableInventoryItem serializedItem in savedInventory.Contents)
-                {
-                    if (serializedItem.TryDeserialize(this, out InventoryItem item))
-                    {
-                        AddInventoryItem(item);
-                    }
-                }
-            }
-            else
-            {
-                Name = inventoryName;
-                _inventoryBounds = new InventoryBounds(Vector2Int.zero, defaultWidthCells, defaultHeightCells);
-                _contents = new InventoryItem[defaultWidthCells * defaultHeightCells];
-            }
-
-            //NOTE: Server code:
-            Persistence.Singleton.RegisterSpatialInventoryForSaving(this, Name);
+            Name = inventoryName;
+            _inventoryBounds = new InventoryBounds(Vector2Int.zero, defaultWidthCells, defaultHeightCells);
+            _contents = new InventoryItem[defaultWidthCells * defaultHeightCells];
         }
 
 
@@ -59,11 +41,26 @@ namespace InventorySystem.Inventories
         }
 
 
-        public JsonSerializableSpatialInventory Serialize()
+        public void AddItems(IEnumerable<InventoryItem> items)
         {
-            List<JsonSerializableInventoryItem> items = (from item in _contents where item != null select item.Serialize()).ToList();
-            return new JsonSerializableSpatialInventory(Name, Bounds.Width, Bounds.Height, items.ToArray());
+            foreach (InventoryItem item in items)
+            {
+                if(IsItemBoundsValid(item.Bounds))
+                    AddInventoryItem(item);
+                else
+                    Logger.Log(
+                        LogLevel.WARN,
+                        $"{nameof(SpatialInventory)}: {Name}",
+                        $"Could not add item '{item.Metadata.ItemData.Name}' as it has invalid bounds.");
+            }
         }
+
+
+        // public JsonSerializableSpatialInventory Serialize()
+        // {
+        //     List<JsonSerializableInventoryItem> items = (from item in _contents where item != null select item.Serialize()).ToList();
+        //     return new JsonSerializableSpatialInventory(Name, Bounds.Width, Bounds.Height, items.ToArray());
+        // }
 
 
         public IEnumerable<InventoryItem> GetAllItems()
@@ -108,11 +105,13 @@ namespace InventorySystem.Inventories
 
 
         /// <returns>If given item is inside the inventory and does not overlap with any other item.</returns>
-        public bool IsValidItemBounds(InventoryBounds itemBounds, InventoryBounds? existingBoundsToIgnore = null)
+        public bool IsItemBoundsValid(InventoryBounds itemBounds, InventoryBounds? existingBoundsToIgnore = null)
         {
             // Check if the item fits within the inventory bounds.
             if (!_inventoryBounds.Contains(itemBounds))
+            {
                 return false;
+            }
 
             // Check if there are any overlapping items.
             foreach (InventoryItem item in _contents)
@@ -140,7 +139,7 @@ namespace InventorySystem.Inventories
         {
             int toIndex = PositionToIndex(position);
 
-            if (toIndex < 0 || toIndex >= _contents.Length)
+            if (toIndex < 0 || toIndex >= _contents.Length || _contents[toIndex] == null)
             {
                 item = null;
                 return false;
@@ -155,10 +154,16 @@ namespace InventorySystem.Inventories
         private List<InventoryItem> TryAddItems(ItemMetadata metadata, int count)
         {
             List<InventoryItem> results = new();
+            
+            if (metadata == null || metadata.ItemData == null)
+            {
+                Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {Name}", "Tried to add item with NULL ItemData.");
+                return results;
+            }
 
             for (int i = 0; i < count; i++)
             {
-                InventoryItem newItem = CreateNewInventoryItem(metadata);
+                InventoryItem newItem = CreateNewInventoryItemForThisInventory(metadata);
             
                 if (newItem == null)
                 {
@@ -198,18 +203,26 @@ namespace InventorySystem.Inventories
         }
 
 
-        private InventoryItem CreateNewInventoryItem(ItemMetadata metadata)
+        private InventoryItem CreateNewInventoryItemForThisInventory(ItemMetadata metadata)
         {
             foreach (Vector2Int position in _inventoryBounds.AllPositionsWithin())
             {
                 InventoryBounds itemBounds = new(position, metadata.ItemData.InventorySizeX, metadata.ItemData.InventorySizeY);
                 InventoryBounds itemBoundsRotated = new(position, metadata.ItemData.InventorySizeY, metadata.ItemData.InventorySizeX);
+
+                if (IsItemBoundsValid(itemBounds))
+                {
+                    InventoryItem newItem = new(metadata, itemBounds, ItemRotation.DEG_0);
+                    newItem.AssignInventory(this);
+                    return newItem;
+                }
                 
-                if (IsValidItemBounds(itemBounds))
-                    return new InventoryItem(this, metadata, itemBounds, ItemRotation.DEG_0);
-                
-                if (IsValidItemBounds(itemBoundsRotated))
-                    return new InventoryItem(this, metadata, itemBoundsRotated, ItemRotation.DEG_90);
+                if (IsItemBoundsValid(itemBoundsRotated))
+                {
+                    InventoryItem newItem = new(metadata, itemBoundsRotated, ItemRotation.DEG_90);
+                    newItem.AssignInventory(this);
+                    return newItem;
+                }
             }
 
             return null;
@@ -264,9 +277,12 @@ namespace InventorySystem.Inventories
             InventoryBounds newBounds = flipWidthAndHeight ?
                 new InventoryBounds(newItemPosition, movedItem.Metadata.ItemData.InventorySizeY, movedItem.Metadata.ItemData.InventorySizeX) :
                 new InventoryBounds(newItemPosition, movedItem.Metadata.ItemData.InventorySizeX, movedItem.Metadata.ItemData.InventorySizeY);
-
-            if (!targetInventory.IsValidItemBounds(newBounds, movedItem.Bounds))
+            
+            if (!targetInventory.IsItemBoundsValid(newBounds, movedItem.Bounds))
+            {
+                Logger.Log(LogLevel.DEBUG, $"{nameof(SpatialInventory)}: {Name}", "Bounds are overlapping something.");
                 return false;
+            }
 
             MoveInventoryItem(movedItem, targetInventory, newBounds, newRotation);
 
@@ -306,19 +322,20 @@ namespace InventorySystem.Inventories
             int newIndex = PositionToIndex(bounds.Position);
             
             // Create a copy and assign it to the contents.
-            InventoryItem newInventoryItem = new(this, existingItem.Metadata, bounds, rotation);
+            InventoryItem newInventoryItem = new(existingItem.Metadata, bounds, rotation);
+            newInventoryItem.AssignInventory(this);
             _contents[newIndex] = newInventoryItem;
             return newInventoryItem;
         }
-
-
-        private InventoryItem GetInventoryItemAt(Vector2Int pos) => _contents[PositionToIndex(pos)];
         
         
         private int PositionToIndex(Vector2Int pos) => pos.y * _inventoryBounds.Width + pos.x;
         
         
-        private Vector2Int IndexToPosition(int index) => new(index % _inventoryBounds.Width, index / _inventoryBounds.Width);
+        //private Vector2Int IndexToPosition(int index) => new(index % _inventoryBounds.Width, index / _inventoryBounds.Width);
+
+
+        //private InventoryItem GetInventoryItemAt(Vector2Int pos) => _contents[PositionToIndex(pos)];
 
         
         public override string ToString()

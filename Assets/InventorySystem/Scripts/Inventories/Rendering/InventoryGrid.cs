@@ -37,7 +37,7 @@ namespace InventorySystem.Inventories.Rendering
 
         public override bool CanDropDraggableItem(DraggableItem draggableItem)
         {
-            return _targetSpatialInventory.IsValidItemBounds(draggableItem.GetBounds(RectTransform), draggableItem.InventoryItem.Bounds);
+            return _targetSpatialInventory.IsItemBoundsValid(draggableItem.GetBounds(RectTransform), draggableItem.InventoryItem.Bounds);
         }
 
 

@@ -1,17 +1,15 @@
-﻿using UnityEngine;
+﻿using Newtonsoft.Json;
+using UnityEngine;
 
 namespace InventorySystem.Inventories.Items
 {
+    [JsonConverter(typeof(InventoryItemConverter))]
     public class InventoryItem
     {
         public IInventory ContainingInventory;
         public readonly ItemMetadata Metadata;
         public readonly InventoryBounds Bounds;
         public readonly ItemRotation RotationInInventory;
-
-
-        /// <returns>Serializes this inventoryItem to a ReadOnly-struct.</returns>
-        //public JsonSerializableInventoryItem Serialize() => new(this);
 
 
         public InventoryItem(ItemMetadata itemMetadata, InventoryBounds bounds, ItemRotation rotationInInventory)

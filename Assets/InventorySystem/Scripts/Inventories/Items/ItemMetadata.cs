@@ -1,10 +1,12 @@
-﻿namespace InventorySystem.Inventories.Items
+﻿using Newtonsoft.Json;
+
+namespace InventorySystem.Inventories.Items
 {
     /// <summary>
     /// Contains dynamic runtime-data of an item.
     /// Example: the durability of an item.
     /// </summary>
-    [System.Serializable]
+    [JsonConverter(typeof(ItemMetadataConverter))]
     public class ItemMetadata
     {
         public readonly ItemData ItemData;

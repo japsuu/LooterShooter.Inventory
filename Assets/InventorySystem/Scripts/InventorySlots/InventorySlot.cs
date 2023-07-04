@@ -35,7 +35,7 @@ namespace InventorySystem.InventorySlots
         }
 
 
-        public bool IsValidItemBounds(InventoryBounds itemBounds, InventoryBounds? existingBoundsToIgnore = null)
+        public bool IsItemBoundsValid(InventoryBounds itemBounds, InventoryBounds? existingBoundsToIgnore = null)
         {
             throw new System.NotImplementedException();
         }
@@ -43,7 +43,8 @@ namespace InventorySystem.InventorySlots
 
         public InventoryItem TransferExistingInventoryItem(InventoryItem existingItem, InventoryBounds bounds, ItemRotation rotation)
         {
-            _assignedItem = new InventoryItem(this, existingItem.Metadata, bounds, rotation);
+            _assignedItem = new InventoryItem(existingItem.Metadata, bounds, rotation);
+            _assignedItem.AssignInventory(this);
             return _assignedItem;
         }
 

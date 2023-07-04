@@ -65,7 +65,7 @@ namespace InventorySystem.Inventories
             if(width < 1 || height < 1)
                 return;
             
-            SpatialInventory spatialInventory = new(inventoryName, width, height);
+            SpatialInventory spatialInventory = Persistence.Singleton.GetSpatialInventoryByName(inventoryName, width, height);
             
             SpatialInventoryRenderer spatialInventoryRenderer = Instantiate(_spatialInventoryRendererPrefab, _inventoryRenderersRoot);
             spatialInventoryRenderer.RenderInventory(spatialInventory, inventoryName);
