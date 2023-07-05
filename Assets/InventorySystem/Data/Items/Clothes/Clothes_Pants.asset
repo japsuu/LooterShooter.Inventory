@@ -12,11 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7ed484930a7491dbc5056a127f2f32b, type: 3}
   m_Name: Clothes_Pants
   m_EditorClassIdentifier: 
-  _itemName: MissingYes
-  _itemDescription: Missing Description
-  itemSprite: {fileID: 0}
-  _inventorySizeX: 1
-  _inventorySizeY: 1
+  _guid:
+    _serializedGuid: 62c02415-2c72-44a2-8ac9-8367ab806369
+  _itemName: Test Pants
+  _itemDescription: Pantalones :)
+  _itemSprite: {fileID: 21300000, guid: 6063f1ad053083f41abe13b122487afd, type: 3}
+  _itemType: 40
+  _inventorySizeX: 2
+  _inventorySizeY: 3
   _clothingType: 60
   _containedInventoryWidth: 3
   _containedInventoryHeight: 6

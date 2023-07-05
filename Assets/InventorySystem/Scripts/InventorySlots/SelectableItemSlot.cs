@@ -2,7 +2,7 @@
 
 namespace InventorySystem.InventorySlots
 {
-    public class SelectableInventorySlot : InventorySlot
+    public class SelectableItemSlot : ItemSlot
     {
         [SerializeField] private KeyCode _selectKey = KeyCode.Alpha1;
 

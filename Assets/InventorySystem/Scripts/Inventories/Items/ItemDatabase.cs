@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace InventorySystem.Inventories.Items
@@ -10,7 +11,7 @@ namespace InventorySystem.Inventories.Items
 
         [SerializeField] private List<ItemData> _testingDatabase;
 
-        private Dictionary<int, ItemData> _database;
+        private Dictionary<Guid, ItemData> _database;
 
 
         private void Awake()
@@ -28,17 +29,24 @@ namespace InventorySystem.Inventories.Items
 
         public void RegisterItem(ItemData item)
         {
-            _database.Add(item.HashId, item);
+            if (!_database.TryAdd(item.Guid, item))
+            {
+                Logger.Log(
+                    LogLevel.ERROR,
+                    _database.TryGetValue(item.Guid, out ItemData registeredItem)
+                        ? $"{nameof(ItemData)} '{item.Name}' (GUID: {item.Guid}) will not get registered as it's GUID clashes with {nameof(ItemData)} '{registeredItem.Name}'."
+                        : $"{nameof(ItemData)} '{item.Name}' (GUID: {item.Guid}) could not be registered.");
+            }
         }
 
 
-        public bool TryGetItemById(int itemId, out ItemData item)
+        public bool TryGetItemById(Guid itemGuid, out ItemData item)
         {
-            bool success = _database.TryGetValue(itemId, out item);
+            bool success = _database.TryGetValue(itemGuid, out item);
 
             if (!success)
             {
-                Logger.Log(LogLevel.FATAL, $"Cannot get reference to {nameof(ItemData)} with ID {itemId}!");
+                Logger.Log(LogLevel.FATAL, $"Cannot get reference to {nameof(ItemData)} with GUID {itemGuid}!");
             }
             
             return success;

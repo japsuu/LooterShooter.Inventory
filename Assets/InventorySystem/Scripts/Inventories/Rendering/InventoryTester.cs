@@ -16,7 +16,6 @@ namespace InventorySystem.Inventories.Rendering
             {
                 ItemData itemData = _testItems[Random.Range(0, _testItems.Count)];
                 PlayerInventoryManager.Singleton.TryAddItems(new ItemMetadata(itemData), 1);
-                print($"tryadd: {itemData.Name}");
             }
         }
     }

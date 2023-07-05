@@ -21,8 +21,8 @@ namespace InventorySystem.Inventories
         
         [Header("Base Inventory")]
         [SerializeField] private string _baseInventoryName = "Pockets";
-        [SerializeField, Min(0)] private int _baseInventoryWidth = 8;
-        [SerializeField, Min(0)] private int _baseInventoryHeight = 4;
+        [SerializeField, Min(0)] private int _baseInventoryWidth = 4;
+        [SerializeField, Min(0)] private int _baseInventoryHeight = 3;
         
         private Dictionary<string, SpatialInventory> _inventories;
         private Dictionary<string, SpatialInventoryRenderer> _renderers;
@@ -71,7 +71,6 @@ namespace InventorySystem.Inventories
             spatialInventoryRenderer.RenderInventory(spatialInventory, inventoryName);
             
             spatialInventory.AddedItem += OnAddedItem;
-            spatialInventory.MovedItem += OnMovedItem;
             spatialInventory.RemovedItem += OnRemovedItem;
 
             _inventories.Add(inventoryName, spatialInventory);
@@ -99,25 +98,6 @@ namespace InventorySystem.Inventories
         }
 
 
-        private void OnMovedItem(MoveItemEventArgs moveItemEventArgs)
-        {
-            if (!_renderers.TryGetValue(moveItemEventArgs.OldItem.ContainingInventory.Name, out SpatialInventoryRenderer oldInventoryRenderer))
-            {
-                Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", "Could not get the renderer of the old inventory of a moved item.");
-                return;
-            }
-            
-            if (!_renderers.TryGetValue(moveItemEventArgs.NewItem.ContainingInventory.Name, out SpatialInventoryRenderer newInventoryRenderer))
-            {
-                Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", "Could not get the renderer of the new inventory of a moved item.");
-                return;
-            }
-            
-            oldInventoryRenderer.RemoveEntityOfItem(moveItemEventArgs.OldItem);
-            newInventoryRenderer.CreateNewDraggableItem(moveItemEventArgs.NewItem);
-        }
-
-
         public void RemoveInventory(string inventoryName)
         {
             if (!_inventories.Remove(inventoryName, out SpatialInventory inventory))
@@ -127,7 +107,6 @@ namespace InventorySystem.Inventories
             }
             
             inventory.AddedItem -= OnAddedItem;
-            inventory.MovedItem -= OnMovedItem;
             inventory.RemovedItem -= OnRemovedItem;
                 
             if (_renderers.Remove(inventoryName, out SpatialInventoryRenderer inventoryRenderer))

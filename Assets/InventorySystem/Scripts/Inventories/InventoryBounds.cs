@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using InventorySystem.Inventories.Items;
 using UnityEngine;
 
 namespace InventorySystem.Inventories
@@ -17,8 +18,20 @@ namespace InventorySystem.Inventories
         private readonly Vector2Int _extent;
         
 
-        public InventoryBounds(Vector2Int position, int width, int height)
+        public InventoryBounds(int width, int height)
         {
+            Width = width;
+            Height = height;
+            Position = Vector2Int.zero;
+            _extent = new Vector2Int(Position.x + Width, Position.y + Height);
+        }
+        
+
+        public InventoryBounds(ItemData itemData, Vector2Int position, ItemRotation rotation)
+        {
+            int width = rotation.ShouldFlipWidthAndHeight() ? itemData.InventorySizeY : itemData.InventorySizeX;
+            int height = rotation.ShouldFlipWidthAndHeight() ? itemData.InventorySizeX : itemData.InventorySizeY;
+            
             Width = width;
             Height = height;
             Position = position;

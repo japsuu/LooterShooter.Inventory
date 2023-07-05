@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
+using InventorySystem.Inventories.Items;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace InventorySystem.Inventories.Items
+namespace InventorySystem.Inventories.Serialization
 {
     public class InventoryItemConverter : JsonConverter<InventoryItem>
     {
@@ -55,10 +56,7 @@ namespace InventorySystem.Inventories.Items
             int posX = posXToken.ToObject<int>();
             int posY = posYToken.ToObject<int>();
             
-            int width = rotationInInventory.ShouldFlipWidthAndHeight() ? metadata.ItemData.InventorySizeY : metadata.ItemData.InventorySizeX;
-            int height = rotationInInventory.ShouldFlipWidthAndHeight() ? metadata.ItemData.InventorySizeX : metadata.ItemData.InventorySizeY;
-            
-            InventoryBounds bounds = new(new Vector2Int(posX, posY), width, height);
+            InventoryBounds bounds = new(metadata.ItemData, new Vector2Int(posX, posY), rotationInInventory);
 
             return new InventoryItem(metadata, bounds, rotationInInventory, null);
         }

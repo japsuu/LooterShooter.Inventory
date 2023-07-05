@@ -4,7 +4,7 @@ using InventorySystem.Inventories.Items;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace InventorySystem.Inventories
+namespace InventorySystem.Inventories.Serialization
 {
     public class SpatialInventoryConverter : JsonConverter<SpatialInventory>
     {

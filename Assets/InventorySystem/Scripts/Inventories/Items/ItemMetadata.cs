@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using InventorySystem.Inventories.Serialization;
+using Newtonsoft.Json;
 
 namespace InventorySystem.Inventories.Items
 {

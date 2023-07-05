@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 076cc65657224d2a88b542e50b4fc0f6, type: 3}
   m_Name: ItData_Test_2x4
   m_EditorClassIdentifier: 
+  _guid:
+    _serializedGuid: 8db17992-546a-47f9-80e6-88b954a40ff9
   _itemName: Item (2x4)
   _itemDescription: Missing Description
   _itemSprite: {fileID: 21300000, guid: f627924122bfc504d8645126aef499fa, type: 3}

@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using InventorySystem.Inventories;
+using InventorySystem.Inventories.Serialization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -16,6 +18,13 @@ namespace InventorySystem
 
         private Dictionary<string, SpatialInventory> _loadedInventories;
         private Dictionary<string, SpatialInventory> _spatialInventoriesToSave;
+        
+        
+        [UnityEditor.MenuItem("Looter Shooter/Open Save Folder")]
+        private static void OpenSaveFolder()
+        {
+            Process.Start(Application.persistentDataPath);
+        }
 
 
         public static void RegisterInventoryDestruction(SpatialInventory spatialInventory)

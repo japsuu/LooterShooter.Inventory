@@ -2,6 +2,7 @@
 using InventorySystem.Inventories.Items;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace InventorySystem.Inventories.Rendering
 {
@@ -11,8 +12,7 @@ namespace InventorySystem.Inventories.Rendering
         // Serialized fields.
         [SerializeField] private TMP_Text _inventoryNameText;
         [SerializeField] private RectTransform _entityRootTransform;
-        [SerializeField] private InventoryGrid _inventoryGrid;
-        [SerializeField] private DraggableItem _draggableItemPrefab;
+        [FormerlySerializedAs("_inventoryGrid")] [SerializeField] private ItemGrid _itemGrid;
 
         // Private fields.
         private Dictionary<InventoryItem, DraggableItem> _entities;
@@ -45,7 +45,7 @@ namespace InventorySystem.Inventories.Rendering
             float height = _targetSpatialInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
 
             // Resize the slots image.
-            _inventoryGrid.Initialize(_targetSpatialInventory, width, height);
+            _itemGrid.Initialize(_targetSpatialInventory, width, height);
 
             foreach (InventoryItem item in _targetSpatialInventory.GetAllItems())
             {
@@ -56,7 +56,7 @@ namespace InventorySystem.Inventories.Rendering
 
         public void CreateNewDraggableItem(InventoryItem inventoryItem)
         {
-            DraggableItem draggableItem = Instantiate(_draggableItemPrefab, _entityRootTransform);
+            DraggableItem draggableItem = Instantiate(PrefabReferences.Singleton.DraggableItemPrefab, _entityRootTransform);
 
             draggableItem.Initialize(inventoryItem);
             

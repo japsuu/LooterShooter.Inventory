@@ -79,16 +79,11 @@ namespace InventorySystem.Inventories.Rendering
 
         public InventoryBounds GetBounds(RectTransform positionRelativeTo)
         {
-            bool isRotated = Rotation.ShouldFlipWidthAndHeight();
-            int itemSizeX = InventoryItem.Metadata.ItemData.InventorySizeX;
-            int itemSizeY = InventoryItem.Metadata.ItemData.InventorySizeY;
-            int itemWidth = isRotated ? itemSizeY : itemSizeX;
-            int itemHeight = isRotated ? itemSizeX : itemSizeY;
-
-            // Get the top-left corner position.
+            // Get the top-left corner position and convert it to inventory grid position..
             Vector2 topLeftCorner = Utilities.GetAnchoredPositionRelativeToRect(RectTransform.position, positionRelativeTo);
+            Vector2Int inventoryGridPosition = Utilities.GetInventoryGridPosition(topLeftCorner);
             
-            InventoryBounds bounds = new(Utilities.GetInventoryGridPosition(topLeftCorner), itemWidth, itemHeight);
+            InventoryBounds bounds = new(InventoryItem.Metadata.ItemData, inventoryGridPosition, Rotation);
             return bounds;
         }
 

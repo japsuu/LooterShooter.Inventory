@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace InventorySystem.Inventories.Rendering
 {
     [RequireComponent(typeof(Image))]
-    public class InventoryGrid : DraggableItemReceiverObject
+    public class ItemGrid : DraggableItemReceiverObject
     {
         [SerializeField] private LayoutElement _inventoryLayoutElement;
         

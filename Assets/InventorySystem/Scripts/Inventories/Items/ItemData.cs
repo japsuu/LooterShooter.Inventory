@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace InventorySystem.Inventories.Items
@@ -9,6 +10,10 @@ namespace InventorySystem.Inventories.Items
     [CreateAssetMenu(fileName = "ItData_", menuName = "Items/New Item", order = 0)]
     public class ItemData : ScriptableObject
     {
+        [SerializeField] private SerializableGuid _guid;
+
+        [Header("Item Settings")]
+        
         [SerializeField] private string _itemName = "MissingYes";
         [SerializeField] private string _itemDescription = "Missing Description";
         [FormerlySerializedAs("itemSprite")] [SerializeField] private Sprite _itemSprite;
@@ -16,7 +21,7 @@ namespace InventorySystem.Inventories.Items
         [SerializeField, Min(1)] private int _inventorySizeX = 1;
         [SerializeField, Min(1)] private int _inventorySizeY = 1;
 
-        public int HashId => GetHashCode();
+        public Guid Guid => _guid;
         public string Name => _itemName;
         public Sprite Sprite => _itemSprite;
         public string Description => _itemDescription;
