@@ -1,5 +1,4 @@
-﻿using System;
-using InventorySystem.Inventories.Items;
+﻿using InventorySystem.Inventories.Items;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -23,9 +22,8 @@ namespace InventorySystem.Inventories.Rendering
         // Private fields: Runtime.
         private DraggableItemReceiverObject _belowDraggableReceiver;
         private Canvas _temporaryOverrideCanvas;
-        private Vector2Int _position;
-        private Vector2 _dragStartCursorPosition;
-        private Vector2 _dragStartObjectPosition;
+        private Vector2 _dragStartCursorOffset;
+        //private Vector2 _dragStartObjectPosition;
         private float _targetContentRotation;
         private bool _isUserDragging;
 
@@ -79,11 +77,39 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
+        public Vector2 GetTopLeftCorner()
+        {
+            // Calculate the half width and half height of the RectTransform.
+            float rectHalfWidth = RectTransform.rect.width * 0.5f;
+            float rectHalfHeight = RectTransform.rect.height * 0.5f;
+
+            // Calculate the top-left corner relative to the positionRelativeTo RectTransform.
+            Vector2 rectTopLeftCorner = (Vector2)RectTransform.position - new Vector2(rectHalfWidth, -rectHalfHeight);
+            
+            return rectTopLeftCorner;
+        }
+
+
+        public Vector2 GetTopLeftCornerRelativeToRect(RectTransform positionRelativeTo)
+        {
+            Vector2 relativePoint = Utilities.GetAnchoredPositionRelativeToRect(RectTransform.position, positionRelativeTo);
+
+            // Calculate the half width and half height of the RectTransform.
+            float rectHalfWidth = RectTransform.rect.width * 0.5f;
+            float rectHalfHeight = RectTransform.rect.height * 0.5f;
+
+            // Calculate the top-left corner relative to the positionRelativeTo RectTransform.
+            Vector2 relativeRectTopLeftCorner = relativePoint - new Vector2(rectHalfWidth, -rectHalfHeight);
+            
+            return relativeRectTopLeftCorner;
+        }
+
+
         public InventoryBounds GetBounds(RectTransform positionRelativeTo)
         {
-            // Get the top-left corner position and convert it to inventory grid position..
-            Vector2 topLeftCorner =
-                Utilities.GetAnchoredPositionRelativeToRect(RectTransform.position, positionRelativeTo);
+            // Get the top-left corner position and convert it to inventory grid position.
+            //Vector2 topLeftCorner = Utilities.GetAnchoredPositionRelativeToRect(RectTransform.position, positionRelativeTo);
+            Vector2 topLeftCorner = GetTopLeftCornerRelativeToRect(positionRelativeTo);
             Vector2Int inventoryGridPosition = Utilities.GetInventoryGridPosition(topLeftCorner);
 
             InventoryBounds bounds = new(InventoryItem.Metadata.ItemData, inventoryGridPosition, Rotation);
@@ -104,7 +130,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             UpdateRotation(InventoryItem.RotationInInventory);
             UpdateSize();
-            UpdatePosition();
+            ResetPosition();
         }
 
 
@@ -140,29 +166,59 @@ namespace InventorySystem.Inventories.Rendering
             // We need to do this because the object's pivot point is set to the top-left corner.
             // This basically means, that the pivot point will stay at the same point relative to the cursor.
             // With this change, the center of the rectTransform will stay at place relative to the cursor.
-            Vector2 sizeDelta = RectTransform.sizeDelta;
-            Vector2 positionAdjustment =
-                new Vector2(-(rootNewSize.x - sizeDelta.x), rootNewSize.y - sizeDelta.y) * 0.5f;
+            //Vector2 positionAdjustment =
+            //    new Vector2(-(rootNewSize.x - sizeDelta.x), rootNewSize.y - sizeDelta.y) * 0.5f;
+            //Vector2 positionAdjustment = sizeDelta * 0.5f;
 
             // Adjust size.
-            sizeDelta = rootNewSize;
-            RectTransform.sizeDelta = sizeDelta;
+            RectTransform.sizeDelta = rootNewSize;
             _contentsRoot.sizeDelta = contentsNewSize;
 
             // Adjust position.
-            RectTransform.anchoredPosition += positionAdjustment;
+            //RectTransform.anchoredPosition += positionAdjustment;
         }
 
 
-        private void UpdatePosition()
+        private void MoveToMousePosition()
         {
-            // Set the new position.
-            _position = InventoryItem.Bounds.Position;
+            //Vector2 currentMousePosition = Input.mousePosition;
+            //Vector2 offset = currentMousePosition - _dragStartCursorPosition;
+            //Vector2 targetObjectPosition = _dragStartObjectPosition + offset;
+            //RectTransform.position = targetObjectPosition + GetCenterPositionAsAnchoredPosition();
 
+            RectTransform.position = (Vector2)Input.mousePosition - _dragStartCursorOffset;
+
+            _belowDraggableReceiver = GetDraggableReceiverBelow();
+            UpdateHighlighterPosition();
+        }
+
+
+        private Vector2 GetCenterPositionAsAnchoredPosition()
+        {
+            //int itemWidthCells = Rotation.ShouldFlipWidthAndHeight() ? InventoryItem.Metadata.ItemData.InventorySizeY : InventoryItem.Metadata.ItemData.InventorySizeX;
+            //int itemHeightCells = Rotation.ShouldFlipWidthAndHeight() ? InventoryItem.Metadata.ItemData.InventorySizeX : InventoryItem.Metadata.ItemData.InventorySizeY;
+            //float itemWidthUnits = itemWidthCells * Utilities.INVENTORY_SLOT_SIZE;
+            //float itemHeightUnits = itemHeightCells * Utilities.INVENTORY_SLOT_SIZE;
+            float itemWidthUnits = RectTransform.sizeDelta.x;
+            float itemHeightUnits = RectTransform.sizeDelta.y;
+
+            Vector2 leftCornerPosition = new(
+                InventoryItem.Bounds.Position.x * Utilities.INVENTORY_SLOT_SIZE,
+                InventoryItem.Bounds.Position.y * -Utilities.INVENTORY_SLOT_SIZE);
+
+            Vector2 centerPosition = leftCornerPosition + new Vector2(itemWidthUnits / 2, -itemHeightUnits / 2);
+
+            return centerPosition;
+        }
+
+
+        private void ResetPosition()
+        {
             // Move to new position.
-            float posX = _position.x * Utilities.INVENTORY_SLOT_SIZE;
-            float posY = -(_position.y * Utilities.INVENTORY_SLOT_SIZE);
-            RectTransform.anchoredPosition = new Vector3(posX, posY, 0);
+            //float posX = InventoryItem.Bounds.Position.x * Utilities.INVENTORY_SLOT_SIZE;
+            //float posY = -(InventoryItem.Bounds.Position.y * Utilities.INVENTORY_SLOT_SIZE);
+            //RectTransform.anchoredPosition = new Vector3(posX, posY, 0);
+            RectTransform.anchoredPosition = GetCenterPositionAsAnchoredPosition();
         }
 
 
@@ -175,8 +231,8 @@ namespace InventorySystem.Inventories.Rendering
             _temporaryOverrideCanvas.overrideSorting = true;
             _temporaryOverrideCanvas.sortingOrder = 9999;
 
-            _dragStartCursorPosition = eventData.position;
-            _dragStartObjectPosition = RectTransform.position;
+            _dragStartCursorOffset = Input.mousePosition - RectTransform.position;
+                //_dragStartObjectPosition = RectTransform.position;
 
             // Update validator.
             UpdateHighlighterSize();
@@ -193,17 +249,6 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        private void MoveToMousePosition()
-        {
-            Vector2 currentMousePosition = Input.mousePosition;
-            Vector2 offset = currentMousePosition - _dragStartCursorPosition;
-            Vector2 targetObjectPosition = _dragStartObjectPosition + offset;
-            RectTransform.position = targetObjectPosition;
-            _belowDraggableReceiver = GetDraggableReceiverBelow();
-            UpdateHighlighterPosition();
-        }
-
-
         public void OnEndDrag(PointerEventData eventData)
         {
             _isUserDragging = false;
@@ -213,10 +258,7 @@ namespace InventorySystem.Inventories.Rendering
             if (_temporaryOverrideCanvas != null)
                 Destroy(_temporaryOverrideCanvas);
 
-            // Request the inventory to move this entity.
-            // RequestMove();
-            // NOTE: This is now handled in DraggableItemReceiverObject.cs.
-
+            // Request the receiver to handle this entity.
             if (_belowDraggableReceiver != null)
                 _belowDraggableReceiver.OnEndDrag(this);
 
@@ -244,11 +286,17 @@ namespace InventorySystem.Inventories.Rendering
         [CanBeNull]
         private DraggableItemReceiverObject GetDraggableReceiverBelow()
         {
-            int itemSizeX = InventoryItem.Metadata.ItemData.InventorySizeX;
+            DraggableItemReceiverObject current = Utilities.GetFirstComponentBelow<DraggableItemReceiverObject>(RectTransform.position);
+
+            return current;
+
+            /*  Below is an implementation to loop all cells outwards of the item for an receiver, starting from the center.
+             
+             int itemSizeX = InventoryItem.Metadata.ItemData.InventorySizeX;
             int itemSizeY = InventoryItem.Metadata.ItemData.InventorySizeY;
             const float halfCellSize = Utilities.INVENTORY_SLOT_SIZE / 2f;
-            int centerX = itemSizeX / 2;
-            int centerY = itemSizeY / 2;
+            //int centerX = itemSizeX / 2;
+            //int centerY = itemSizeY / 2;
 
             float currentPosX = RectTransform.position.x;
             float currentPosY = RectTransform.position.y;
@@ -258,11 +306,10 @@ namespace InventorySystem.Inventories.Rendering
                 {
                     // Item size is odd in both dimensions, only check the center cell.
                     Vector2 cellCenter = new(
-                        currentPosX + halfCellSize + centerX * Utilities.INVENTORY_SLOT_SIZE,
-                        currentPosY - (halfCellSize + centerY * Utilities.INVENTORY_SLOT_SIZE));
+                        currentPosX + halfCellSize,
+                        currentPosY - halfCellSize);
 
-                    DraggableItemReceiverObject current =
-                        Utilities.GetFirstComponentBelow<DraggableItemReceiverObject>(cellCenter);
+                    DraggableItemReceiverObject current = Utilities.GetFirstComponentBelow<DraggableItemReceiverObject>(cellCenter);
 
                     if (current != null)
                         return current;
@@ -295,7 +342,7 @@ namespace InventorySystem.Inventories.Rendering
                     for (int y = 0; y < itemSizeY; y++)
                     {
                         Vector2 cellCenter = new(
-                            currentPosX + halfCellSize + centerX * Utilities.INVENTORY_SLOT_SIZE,
+                            currentPosX + halfCellSize,
                             currentPosY - (halfCellSize + y * Utilities.INVENTORY_SLOT_SIZE));
 
                         DraggableItemReceiverObject current =
@@ -314,7 +361,7 @@ namespace InventorySystem.Inventories.Rendering
                     {
                         Vector2 cellCenter = new(
                             currentPosX + halfCellSize + x * Utilities.INVENTORY_SLOT_SIZE,
-                            currentPosY - (halfCellSize + centerY * Utilities.INVENTORY_SLOT_SIZE));
+                            currentPosY - halfCellSize);
 
                         DraggableItemReceiverObject current =
                             Utilities.GetFirstComponentBelow<DraggableItemReceiverObject>(cellCenter);
@@ -327,7 +374,7 @@ namespace InventorySystem.Inventories.Rendering
                 }
             }
 
-            return null;
+            return null;*/
         }
 
 
