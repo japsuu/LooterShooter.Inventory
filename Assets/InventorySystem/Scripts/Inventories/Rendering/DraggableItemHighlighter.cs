@@ -56,11 +56,18 @@ namespace InventorySystem.Inventories.Rendering
             Vector2 position;
             if (belowReceiver != null)
             {
-                Vector2 relativeAnchoredPos = Utilities.GetAnchoredPositionRelativeToRect(draggableItem.RectTransform.position, belowReceiver.RectTransform);
-                Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeAnchoredPos);
-                Vector2 screenSpacePos = belowReceiver.RectTransform.GetScreenSpacePosition(snappedPos);
+                if (belowReceiver.DoSnapHighlighterToGrid)
+                {
+                    Vector2 relativeAnchoredPos = Utilities.GetAnchoredPositionRelativeToRect(draggableItem.RectTransform.position, belowReceiver.RectTransform);
+                    Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeAnchoredPos);
+                    Vector2 screenSpacePos = belowReceiver.RectTransform.GetScreenSpacePosition(snappedPos);
 
-                position = screenSpacePos;
+                    position = screenSpacePos;
+                }
+                else
+                {
+                    position = draggableItem.RectTransform.position;
+                }
             }
             else
             {

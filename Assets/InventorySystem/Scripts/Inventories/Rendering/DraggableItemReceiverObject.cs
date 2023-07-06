@@ -6,6 +6,9 @@ namespace InventorySystem.Inventories.Rendering
     public abstract class DraggableItemReceiverObject : MonoBehaviour
     {
         public RectTransform RectTransform { get; private set; }
+        
+        
+        public abstract bool DoSnapHighlighterToGrid { get; }
 
 
         protected virtual void Awake()
@@ -17,6 +20,9 @@ namespace InventorySystem.Inventories.Rendering
         public void OnEndDrag(DraggableItem draggedItem)
         {
             if(draggedItem == null)
+                return;
+            
+            if(!CanDropDraggableItem(draggedItem))
                 return;
             
             HandleDroppedDraggableItem(draggedItem);

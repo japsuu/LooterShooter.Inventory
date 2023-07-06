@@ -10,11 +10,11 @@ namespace InventorySystem.InventorySlots
     public abstract class ItemSlot : DraggableItemReceiverObject, IInventory
     {
         /// <summary>
-        /// What types of items can be dropped to this slot. Leave empty to not allow any items.
+        /// What types of items can be dropped to this slot. Leave empty to allow any items.
         /// </summary>
         protected abstract ItemType[] ItemTypeRestrictions { get; }
         
-        [Tooltip("Unique name of this slot. Used for saving it.")]
+        [Tooltip("Unique name of this slot. Used for saving it's contents.")]
         [SerializeField] protected string _uniqueSlotName = "gear";
         
         [SerializeField] private Image _assignedItemImage;
@@ -22,6 +22,8 @@ namespace InventorySystem.InventorySlots
         public string Name => $"slot_{_uniqueSlotName}";
 
         protected InventoryItem AssignedItem;
+        
+        public override bool DoSnapHighlighterToGrid => false;
 
 
         public virtual bool TryCreateNewInventoryItem(ItemMetadata metadata, Vector2Int position, ItemRotation rotation, InventoryBounds? boundsToIgnore, out InventoryItem createdInventoryItem)
@@ -64,6 +66,7 @@ namespace InventorySystem.InventorySlots
         protected virtual void OnItemAdded()
         {
             _assignedItemImage.sprite = AssignedItem.Metadata.ItemData.Sprite;
+            _assignedItemImage.preserveAspect = true;
             _assignedItemImage.color = Color.white;
         }
 

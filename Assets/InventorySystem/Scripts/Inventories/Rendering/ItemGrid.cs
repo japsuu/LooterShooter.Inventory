@@ -14,6 +14,9 @@ namespace InventorySystem.Inventories.Rendering
         private SpatialInventory _targetSpatialInventory;
 
 
+        public override bool DoSnapHighlighterToGrid => true;
+
+
         protected override void Awake()
         {
             base.Awake();
