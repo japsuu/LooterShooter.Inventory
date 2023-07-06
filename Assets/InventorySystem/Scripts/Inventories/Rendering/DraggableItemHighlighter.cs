@@ -43,7 +43,7 @@ namespace InventorySystem.Inventories.Rendering
 
 
         public void UpdateSize(float width, float height)
-        {//BUG: Check usages
+        {
             _validatorImage.enabled = true;
             
             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
@@ -58,15 +58,18 @@ namespace InventorySystem.Inventories.Rendering
             {
                 if (belowReceiver.DoSnapHighlighterToGrid)
                 {
-                    Vector2 relativeAnchoredPos = Utilities.GetAnchoredPositionRelativeToRect(draggableItem.RectTransform.position, belowReceiver.RectTransform);
-                    Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeAnchoredPos);
+                    Vector2 relativeTopLeftPosition = draggableItem.GetTopLeftCornerRelativeToRect(belowReceiver.RectTransform);
+                    Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeTopLeftPosition);
                     Vector2 screenSpacePos = belowReceiver.RectTransform.GetScreenSpacePosition(snappedPos);
+                    print($"RTL:{relativeTopLeftPosition}, SP:{snappedPos}, SSP:{screenSpacePos}");
 
                     position = screenSpacePos;
                 }
                 else
                 {
-                    position = draggableItem.RectTransform.position;
+                    Vector2 relativeTopLeftPosition = draggableItem.GetTopLeftCornerRelativeToRect(belowReceiver.RectTransform);
+                    Vector2 screenSpacePos = belowReceiver.RectTransform.GetScreenSpacePosition(relativeTopLeftPosition);
+                    position = screenSpacePos;
                 }
             }
             else

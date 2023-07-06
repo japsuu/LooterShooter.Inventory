@@ -46,8 +46,8 @@ namespace InventorySystem.Inventories.Rendering
 
         protected override void HandleDroppedDraggableItem(DraggableItem draggableItem)
         {
-            Vector2 relativeAnchoredPosition = Utilities.GetAnchoredPositionRelativeToRect(draggableItem.RectTransform.position, RectTransform);
-            Vector2Int newPosition = Utilities.GetInventoryGridPosition(relativeAnchoredPosition);
+            Vector2 relativeTopLeftPosition = draggableItem.GetTopLeftCornerRelativeToRect(RectTransform);
+            Vector2Int newPosition = Utilities.GetInventoryGridPosition(relativeTopLeftPosition);
             ItemRotation newRotation = draggableItem.Rotation;
             SpatialInventory newSpatialInventory = _targetSpatialInventory;
 
