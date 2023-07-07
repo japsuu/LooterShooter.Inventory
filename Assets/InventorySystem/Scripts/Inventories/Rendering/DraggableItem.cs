@@ -49,6 +49,8 @@ namespace InventorySystem.Inventories.Rendering
 
             if (!_isUserDragging)
                 return;
+            
+            MoveToMousePosition();
 
             RectTransform.SetAsLastSibling();
 
@@ -243,11 +245,12 @@ namespace InventorySystem.Inventories.Rendering
 
         public void OnDrag(PointerEventData eventData)
         {
+            // Because OnDrag is only called when the cursor moves, the Entity might "lag behind" when scrolling etc.
+            // Tried calling this in Update, but that fucks up the rotation offset. NOTE: Fixed and moved to Update().
+            // MoveToMousePosition();
+            
+            // Old movement code:
             //_rectTransform.anchoredPosition += eventData.delta / _temporaryOverrideCanvas.scaleFactor;
-
-            //WARN: Because OnDrag is only called when the cursor moves, the Entity might "lag behind" when scrolling etc.
-            //WARN: Tried calling this in Update, but that fucks up the rotation offset. TODO: Fix later.
-            MoveToMousePosition();
         }
 
 
