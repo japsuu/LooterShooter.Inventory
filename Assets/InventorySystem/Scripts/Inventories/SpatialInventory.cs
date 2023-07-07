@@ -19,7 +19,7 @@ namespace InventorySystem.Inventories
         private readonly InventoryBounds _inventoryBounds;
         private readonly InventoryItem[] _contents;
 
-        // Public fields.
+        // Public fields
         public InventoryBounds Bounds => _inventoryBounds;
         public string Name { get; }
 
@@ -32,12 +32,6 @@ namespace InventorySystem.Inventories
             Name = inventoryName;
             _inventoryBounds = new InventoryBounds(widthCells, heightCells);
             _contents = new InventoryItem[widthCells * heightCells];
-        }
-
-
-        ~SpatialInventory()
-        {
-            Persistence.RegisterInventoryDestruction(this);
         }
 
 

@@ -17,6 +17,6 @@ MonoBehaviour:
   _itemName: Item (1x1)
   _itemDescription: Missing Description
   _itemSprite: {fileID: 21300000, guid: 43e0a9ae062b91d4fa69ae0f307825c0, type: 3}
-  _itemType: 10
+  _itemType: 20
   _inventorySizeX: 1
   _inventorySizeY: 1

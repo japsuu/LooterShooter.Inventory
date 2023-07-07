@@ -58,7 +58,7 @@ namespace InventorySystem.Inventories.Rendering
         {
             DraggableItem draggableItem = Instantiate(PrefabReferences.Singleton.DraggableItemPrefab, _entityRootTransform);
 
-            draggableItem.Initialize(inventoryItem);
+            draggableItem.Initialize(inventoryItem, false);
             
             _entities.Add(inventoryItem, draggableItem);
             

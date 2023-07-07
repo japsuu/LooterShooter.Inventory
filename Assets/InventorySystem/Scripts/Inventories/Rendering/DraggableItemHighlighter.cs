@@ -61,7 +61,6 @@ namespace InventorySystem.Inventories.Rendering
                     Vector2 relativeTopLeftPosition = draggableItem.GetTopLeftCornerRelativeToRect(belowReceiver.RectTransform);
                     Vector2 snappedPos = Utilities.SnapPositionToInventoryGrid(relativeTopLeftPosition);
                     Vector2 screenSpacePos = belowReceiver.RectTransform.GetScreenSpacePosition(snappedPos);
-                    print($"RTL:{relativeTopLeftPosition}, SP:{snappedPos}, SSP:{screenSpacePos}");
 
                     position = screenSpacePos;
                 }

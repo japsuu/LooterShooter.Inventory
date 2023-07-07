@@ -20,9 +20,13 @@ namespace InventorySystem.Clothing
         private PlayerInventoryManager _playerInventoryManager;
         private Dictionary<ClothingType, ClothingItem> _equippedClothingItems;
 
+        public bool HasAnyClothesEquipped => _equippedClothingItems.Count > 0;
+
 
         private void Awake()
         {
+            Singleton = this;
+            
             _playerInventoryManager = GetComponent<PlayerInventoryManager>();
             _equippedClothingItems = new();
         }
@@ -30,6 +34,9 @@ namespace InventorySystem.Clothing
 
         private void Start()
         {
+            if(HasAnyClothesEquipped || _playerInventoryManager.HasSomethingInInventory)
+                return;
+            
             // Equip starting clothes.
             foreach (ClothingItem clothes in _startingClothes)
             {

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using InventorySystem.Inventories.Items;
 using InventorySystem.Inventories.Rendering;
 using TMPro;
@@ -13,6 +12,7 @@ namespace InventorySystem.InventorySlots
         [SerializeField] private KeyCode _selectKey = KeyCode.Alpha1;
 
         [SerializeField] private TMP_Text _selectKeyText;
+        [SerializeField] private TMP_Text _itemNameText;
         
         [Tooltip("What types of items can be dropped to this slot. Leave empty to not allow any items.")]
         [SerializeField] private ItemType[] _itemTypeRestrictions;
@@ -27,6 +27,7 @@ namespace InventorySystem.InventorySlots
             base.Awake();
 
             _selectKeyText.text = ExtractNumbersOrLetters(_selectKey);
+            _itemNameText.text = "";
         }
 
 
@@ -53,7 +54,7 @@ namespace InventorySystem.InventorySlots
             
             _draggedItem = Instantiate(PrefabReferences.Singleton.DraggableItemPrefab, RectTransform);
 
-            _draggedItem.Initialize(AssignedItem);
+            _draggedItem.Initialize(AssignedItem, true);
             
             _draggedItem.OnBeginDrag(eventData);
         }
@@ -77,12 +78,22 @@ namespace InventorySystem.InventorySlots
         }
 
 
-        protected override void OnItemRemoved()
+        protected override void OnItemRemoved(ItemMetadata itemMetadata)
         {
-            base.OnItemRemoved();
+            base.OnItemRemoved(itemMetadata);
+            
+            _itemNameText.text = "";
             
             if(_draggedItem != null)
                 Destroy(_draggedItem.gameObject);
+        }
+
+
+        protected override void OnItemAdded()
+        {
+            base.OnItemAdded();
+            
+            _itemNameText.text = AssignedItem.Metadata.ItemData.Name;
         }
 
 

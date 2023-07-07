@@ -2,7 +2,6 @@
 using InventorySystem.Inventories.Items;
 using InventorySystem.Inventories.Rendering;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace InventorySystem.Inventories
 {
@@ -14,7 +13,6 @@ namespace InventorySystem.Inventories
     {
         public static PlayerInventoryManager Singleton;
         
-        [FormerlySerializedAs("_inventoryRendererPrefab")]
         [Header("References")]
         [SerializeField] private SpatialInventoryRenderer _spatialInventoryRendererPrefab;
         [SerializeField] private RectTransform _inventoryRenderersRoot;
@@ -23,9 +21,13 @@ namespace InventorySystem.Inventories
         [SerializeField] private string _baseInventoryName = "Pockets";
         [SerializeField, Min(0)] private int _baseInventoryWidth = 4;
         [SerializeField, Min(0)] private int _baseInventoryHeight = 3;
-        
+
+        [SerializeField] private List<ItemData> _startingItems;
+
         private Dictionary<string, SpatialInventory> _inventories;
         private Dictionary<string, SpatialInventoryRenderer> _renderers;
+
+        public bool HasSomethingInInventory => GetAllItems().Count > 0;
 
 
         private void Awake()
@@ -48,14 +50,10 @@ namespace InventorySystem.Inventories
         {
             // Add base inventory.
             AddInventory(_baseInventoryName, _baseInventoryWidth, _baseInventoryHeight);
-        }
 
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.Tab))
+            foreach (ItemData startingItem in _startingItems)
             {
-                //TODO: Notify UI to draw inventories.
+                TryAddItems(new ItemMetadata(startingItem), 1);
             }
         }
 
@@ -108,14 +106,24 @@ namespace InventorySystem.Inventories
             
             inventory.AddedItem -= OnAddedItem;
             inventory.RemovedItem -= OnRemovedItem;
+            
+            Persistence.Singleton.RemoveSpatialInventoryFromSaving(inventory);
                 
             if (_renderers.Remove(inventoryName, out SpatialInventoryRenderer inventoryRenderer))
             {
                 Destroy(inventoryRenderer.gameObject);
             }
-                
-            //TODO: Drop items to ground or something? Add them to the (possible) new inventory that replaced this?
-            Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", "NotImplemented: I have no idea what to do with the items from the inventory you just removed!");
+
+            foreach (InventoryItem item in inventory.GetAllItems())
+            {
+                if (TryAddItems(item.Metadata, 1).Count < 1)
+                {
+                    //TODO: Drop items to ground or something? Add them to the (possible) new inventory that replaced this?
+                    Logger.Log(
+                        LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}",
+                        "NotImplemented: I have no idea what to do with the items from the inventory you just removed!");
+                }
+            }
         }
 
 
@@ -162,6 +170,18 @@ namespace InventorySystem.Inventories
             foreach (SpatialInventory inventory in _inventories.Values)
             {
                 results.AddRange(inventory.GetAllItemsOfType(itemData));
+            }
+
+            return results;
+        }
+
+
+        public List<InventoryItem> GetAllItems()
+        {
+            List<InventoryItem> results = new();
+            foreach (SpatialInventory inventory in _inventories.Values)
+            {
+                results.AddRange(inventory.GetAllItems());
             }
 
             return results;

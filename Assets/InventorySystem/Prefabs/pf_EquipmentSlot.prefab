@@ -244,8 +244,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4493307152295415596}
-  - {fileID: 1932235375948418025}
   - {fileID: 3028722641524640953}
+  - {fileID: 1932235375948418025}
   m_Father: {fileID: 0}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -304,10 +304,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 729ae8b4bbe34585b80ad4a366afbdac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _uniqueSlotName: equipment_weapon_1
   _assignedItemImage: {fileID: 8769703551163339489}
   _selectKey: 49
   _selectKeyText: {fileID: 28448296393787806}
+  _itemNameText: {fileID: 7847999244143171055}
   _itemTypeRestrictions: 1e000000
 --- !u!114 &6679084956588309839
 MonoBehaviour:
@@ -549,8 +549,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 22.5, y: -2.5000045}
-  m_SizeDelta: {x: -45, y: -4.999991}
+  m_AnchoredPosition: {x: 22.5, y: -2.5}
+  m_SizeDelta: {x: -45, y: -5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &119964442427304673
 CanvasRenderer:
@@ -583,7 +583,7 @@ MonoBehaviour:
   m_text: Item Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: e73a58f6e2794ae7b1b7e50b7fb811b0, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -613,7 +613,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535

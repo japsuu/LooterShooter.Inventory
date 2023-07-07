@@ -14,12 +14,12 @@ namespace InventorySystem.InventorySlots
         /// </summary>
         protected abstract ItemType[] ItemTypeRestrictions { get; }
         
-        [Tooltip("Unique name of this slot. Used for saving it's contents.")]
-        [SerializeField] protected string _uniqueSlotName = "gear";
+        //[Tooltip("Unique name of this slot. Used for saving it's contents.")]
+        //protected string _uniqueSlotName = "gear";
         
         [SerializeField] private Image _assignedItemImage;
         
-        public string Name => $"slot_{_uniqueSlotName}";
+        public string Name => "slot_CHANGE_ME";
 
         protected InventoryItem AssignedItem;
         
@@ -42,9 +42,13 @@ namespace InventorySystem.InventorySlots
 
         public virtual void RemoveItem(Vector2Int itemPosition)
         {
+            if(AssignedItem == null)
+                return;
+
+            ItemMetadata removedItem = AssignedItem.Metadata;
             AssignedItem = null;
 
-            OnItemRemoved();
+            OnItemRemoved(removedItem);
         }
 
 
@@ -56,7 +60,7 @@ namespace InventorySystem.InventorySlots
         }
 
 
-        protected virtual void OnItemRemoved()
+        protected virtual void OnItemRemoved(ItemMetadata itemMetadata)
         {
             _assignedItemImage.sprite = null;
             _assignedItemImage.color = Color.clear;
@@ -73,6 +77,9 @@ namespace InventorySystem.InventorySlots
 
         public override bool CanDropDraggableItem(DraggableItem draggableItem)
         {
+            if (AssignedItem != null)
+                return false;
+            
             if (ItemTypeRestrictions == null || ItemTypeRestrictions.Length == 0)
                 return true;
             
@@ -92,9 +99,9 @@ namespace InventorySystem.InventorySlots
         }
 
 
-        protected virtual void OnValidate()
-        {
-            _uniqueSlotName = _uniqueSlotName.Replace(' ', '_');
-        }
+        // protected virtual void OnValidate()
+        // {
+        //     _uniqueSlotName = _uniqueSlotName.Replace(' ', '_');
+        // }
     }
 }

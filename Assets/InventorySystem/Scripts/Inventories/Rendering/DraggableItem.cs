@@ -26,6 +26,7 @@ namespace InventorySystem.Inventories.Rendering
         //private Vector2 _dragStartObjectPosition;
         private float _targetContentRotation;
         private bool _isUserDragging;
+        private bool _destroyWhenDropped;
 
         public InventoryItem InventoryItem { get; private set; }
         public RectTransform RectTransform { get; private set; }
@@ -63,8 +64,9 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void Initialize(InventoryItem inventoryItem)
+        public void Initialize(InventoryItem inventoryItem, bool destroyWhenDropped)
         {
+            _destroyWhenDropped = destroyWhenDropped;
             gameObject.name = $"{nameof(DraggableItem)}: {inventoryItem.Metadata.ItemData.Name}";
             InventoryItem = inventoryItem;
 
@@ -263,6 +265,11 @@ namespace InventorySystem.Inventories.Rendering
                 _belowDraggableReceiver.OnEndDrag(this);
 
             ResetVisuals();
+
+            if (_destroyWhenDropped)
+            {
+                Destroy(gameObject);
+            }
 
             //DraggableItemReceiverObject receiver = Utilities.GetFirstComponentBelow<DraggableItemReceiverObject>(RectTransform.position);
             //if(receiver != null)

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using InventorySystem.Clothing;
 using InventorySystem.Inventories;
 using InventorySystem.Inventories.Serialization;
 using JetBrains.Annotations;
@@ -18,19 +19,15 @@ namespace InventorySystem
 
         private Dictionary<string, SpatialInventory> _loadedInventories;
         private Dictionary<string, SpatialInventory> _spatialInventoriesToSave;
-        
-        
+
+
+#if UNITY_EDITOR
         [UnityEditor.MenuItem("Looter Shooter/Open Save Folder")]
         private static void OpenSaveFolder()
         {
             Process.Start(Application.persistentDataPath);
         }
-
-
-        public static void RegisterInventoryDestruction(SpatialInventory spatialInventory)
-        {
-            
-        }
+#endif
 
 
         public SpatialInventory GetSpatialInventoryByName(string inventoryName, int width, int height)
@@ -51,7 +48,7 @@ namespace InventorySystem
             }
 
             //NOTE: Server code:
-            RegisterSpatialInventoryForSaving(inventory, inventory.Name);
+            AddSpatialInventoryForSaving(inventory);
             
             return inventory;
         }
@@ -85,15 +82,22 @@ namespace InventorySystem
         }
 
 
-        private void RegisterSpatialInventoryForSaving(SpatialInventory toSave, string inventoryName)
+        private void AddSpatialInventoryForSaving(SpatialInventory toSave)
         {
-            if (!_spatialInventoriesToSave.TryAdd(inventoryName, toSave))
+            if (!_spatialInventoriesToSave.TryAdd(toSave.Name, toSave))
             {
                 Logger.Log(
                     LogLevel.ERROR,
                     nameof(Persistence), 
-                    $"Cannot register inventory '{inventoryName}' for saving, as an existing inventory with the same name is already registered.");
+                    $"Cannot register inventory '{toSave.Name}' for saving, as an existing inventory with the same name is already registered.");
             }
+        }
+
+
+        public void RemoveSpatialInventoryFromSaving(SpatialInventory spatialInventory)
+        {
+            _spatialInventoriesToSave.Remove(spatialInventory.Name);
+            _loadedInventories.Remove(spatialInventory.Name);
         }
 
 
