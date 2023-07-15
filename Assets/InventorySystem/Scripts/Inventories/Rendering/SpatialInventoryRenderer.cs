@@ -1,96 +1,91 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using InventorySystem.Clothing;
 using InventorySystem.Inventories.Items;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace InventorySystem.Inventories.Rendering
 {
-    [RequireComponent(typeof(RectTransform))]
-    public class SpatialInventoryRenderer : MonoBehaviour
+    public abstract class SpatialInventoryRenderer : MonoBehaviour
     {
         // Serialized fields.
-        [SerializeField] private TMP_Text _inventoryNameText;
-        [SerializeField] private RectTransform _entityRootTransform;
-        [FormerlySerializedAs("_inventoryGrid")] [SerializeField] private ItemGrid _itemGrid;
+        [SerializeField] protected TMP_Text _inventoryNameText;
+        [SerializeField] protected RectTransform _draggableItemsRootTransform;
+        [SerializeField] protected ItemGrid _itemGrid;
 
         // Private fields.
-        private Dictionary<InventoryItem, DraggableItem> _entities;
-        private SpatialInventory _targetSpatialInventory;
+        protected Dictionary<InventoryItem, DraggableItem> DraggableItems;
 
 
-        private void Awake()
+        protected virtual void Awake()
         {
-            _entities = new();
+            DraggableItems = new();
             
             // Destroy all children >:).
-            for (int i = _entityRootTransform.childCount - 1; i >= 0; i--)
+            for (int i = _draggableItemsRootTransform.childCount - 1; i >= 0; i--)
             {
-                Destroy(_entityRootTransform.GetChild(i).gameObject);
+                Destroy(_draggableItemsRootTransform.GetChild(i).gameObject);
             }
         }
 
 
-        public void RenderInventory(SpatialInventory spatialInventory, string inventoryName)
+        private void Start()
         {
-            if (_targetSpatialInventory != null)
-                StopRenderInventory();
-
-            gameObject.name = $"InventoryRenderer: {inventoryName}";
-            _inventoryNameText.text = inventoryName;
-            
-            _targetSpatialInventory = spatialInventory;
-
-            float width = _targetSpatialInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
-            float height = _targetSpatialInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
-
-            // Resize the slots image.
-            _itemGrid.Initialize(_targetSpatialInventory, width, height);
-
-            foreach (InventoryItem item in _targetSpatialInventory.GetAllItems())
+            foreach (Transform child in transform)
             {
-                CreateNewDraggableItem(item);
+                child.gameObject.SetActive(false);
             }
         }
 
 
-        public void CreateNewDraggableItem(InventoryItem inventoryItem)
+        protected virtual void OnEnable()
         {
-            DraggableItem draggableItem = Instantiate(PrefabReferences.Singleton.DraggableItemPrefab, _entityRootTransform);
-
-            draggableItem.Initialize(inventoryItem, false);
-            
-            _entities.Add(inventoryItem, draggableItem);
-            
-            Logger.Log(LogLevel.DEBUG, gameObject.name, $"CreateNewDraggable '{inventoryItem.Metadata.ItemData.Name}'@{inventoryItem.Bounds.Position}");
+            PlayerInventoryManager.BaseInventoryChanged += OnBaseInventoryChanged;
+            PlayerInventoryManager.EquippedClothesInventoryChanged += OnEquippedClothesInventoryChanged;
         }
 
 
-        public void RemoveEntityOfItem(InventoryItem inventoryItemSnapshot)
+        protected virtual void OnDisable()
         {
-            if (_entities.Remove(inventoryItemSnapshot, out DraggableItem entity))
+            PlayerInventoryManager.BaseInventoryChanged -= OnBaseInventoryChanged;
+            PlayerInventoryManager.EquippedClothesInventoryChanged -= OnEquippedClothesInventoryChanged;
+        }
+
+
+        private void OnBaseInventoryChanged(SpatialInventory baseInventory)
+        {
+            if (!ShouldRenderBaseInventory())
+                return;
+            
+            RenderNewBaseInventory();
+            
+            foreach (Transform child in transform)
             {
-                if(entity != null)
-                    Destroy(entity.gameObject);
+                child.gameObject.SetActive(baseInventory != null);
             }
         }
 
 
-        private void StopRenderInventory()
+        private void OnEquippedClothesInventoryChanged(ClothingType clothingType, ClothingInventory clothingInventory)
         {
-            RemoveAllEntities();
-        }
-
-
-        private void RemoveAllEntities()
-        {
-            foreach (InventoryItem item in _entities.Keys)
-            {
-                if(_entities[item] != null)
-                    Destroy(_entities[item].gameObject);
-            }
+            if (!ShouldRenderClothingInventory(clothingType))
+                return;
             
-            _entities.Clear();
+            RenderNewClothingInventory(clothingInventory);
+            
+            foreach (Transform child in transform)
+            {
+                child.gameObject.SetActive(clothingInventory != null);
+            }
         }
+
+
+        protected virtual bool ShouldRenderBaseInventory() => false;
+        protected virtual bool ShouldRenderClothingInventory(ClothingType clothingType) => false;
+
+
+        protected virtual void RenderNewBaseInventory() { }
+        protected virtual void RenderNewClothingInventory(ClothingInventory clothingInventory) { }
     }
 }

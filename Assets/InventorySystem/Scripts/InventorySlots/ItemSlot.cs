@@ -7,7 +7,7 @@ using UnityEngine.UI;
 namespace InventorySystem.InventorySlots
 {
     [RequireComponent(typeof(Image))]
-    public abstract class ItemSlot : DraggableItemReceiverObject, IInventory
+    public abstract class ItemSlot : DraggableItemReceiverObject, IInventory    //BUG: Remove IInventory
     {
         /// <summary>
         /// What types of items can be dropped to this slot. Leave empty to allow any items.

@@ -1,21 +1,37 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using InventorySystem.Clothing;
 using InventorySystem.Inventories.Items;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace InventorySystem.Inventories.Rendering
 {
     public class InventoryTester : MonoBehaviour
     {
-        [SerializeField] private List<ItemData> _testItems;
-        
-        
+        [System.Serializable]
+        private class SpawnEntry
+        {
+            public KeyCode Key;
+            public List<ItemData> ItemsToSpawn;
+            public List<ClothingItemData> ClothesToEquip;
+        }
+
+        [SerializeField] private List<SpawnEntry> _entries;
+
+
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.A))
+            foreach (SpawnEntry entry in _entries.Where(entry => Input.GetKeyDown(entry.Key)))
             {
-                ItemData itemData = _testItems[Random.Range(0, _testItems.Count)];
-                PlayerInventoryManager.Singleton.TryAddItems(new ItemMetadata(itemData), 1);
+                foreach (ClothingItemData itemData in entry.ClothesToEquip)
+                {
+                    PlayerClothingManager.Singleton.RequestEquipClothes(new ItemMetadata(itemData));
+                }
+                
+                foreach (ItemData itemData in entry.ItemsToSpawn)
+                {
+                    PlayerInventoryManager.Singleton.TryAddItems(new ItemMetadata(itemData), 1);
+                }
             }
         }
     }

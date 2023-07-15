@@ -45,7 +45,7 @@ namespace InventorySystem.Inventories
                     Logger.Log(
                         LogLevel.WARN,
                         $"{nameof(SpatialInventory)}: {Name}",
-                        $"Could not add item '{item.Metadata.ItemData.Name}' as it has invalid bounds.");
+                        $"Could not add item '{item.Metadata.ItemData.ItemName}' as it has invalid bounds.");
             }
         }
 
@@ -77,17 +77,15 @@ namespace InventorySystem.Inventories
 
 
         //NOTE: This should only be called by the server.
-        public List<InventoryItem> RequestAddItems(ItemMetadata metadata, int count)
+        public List<InventoryItem> AddItems(ItemMetadata metadata, int count)
         {
-            //NOTE: Would not work in reality, since we cannot expect the server to immediately respond with changed data.
             return TryAddItems(metadata, count);
         }
 
 
         //NOTE: This should only be called by the server.
-        public List<InventoryItem> RequestRemoveItems(ItemData data, int count)
+        public List<InventoryItem> RemoveItems(ItemData data, int count)
         {
-            //NOTE: Would not work in reality, since we cannot expect the server to immediately respond with changed data.
             return TryRemoveItems(data, count);
         }
 
@@ -207,7 +205,7 @@ namespace InventorySystem.Inventories
         {
             _contents[PositionToIndex(item.Bounds.Position)] = item;
             
-            Logger.Log(LogLevel.DEBUG, $"Inventory '{Name}' added {item.Metadata.ItemData.Name}@{item.Bounds.Position}");
+            Logger.Log(LogLevel.DEBUG, $"Inventory '{Name}' added {item.Metadata.ItemData.ItemName}@{item.Bounds.Position}");
             
             AddedItem?.Invoke(new AddItemEventArgs(item));
         }
@@ -218,7 +216,7 @@ namespace InventorySystem.Inventories
             InventoryItem removedItem = _contents[PositionToIndex(itemPosition)];
             _contents[PositionToIndex(itemPosition)] = null;
             
-            Logger.Log(LogLevel.DEBUG, $"Inventory '{Name}' removed {removedItem.Metadata.ItemData.Name}@{itemPosition}");
+            Logger.Log(LogLevel.DEBUG, $"Inventory '{Name}' removed {removedItem.Metadata.ItemData.ItemName}@{itemPosition}");
             
             RemovedItem?.Invoke(new RemoveItemEventArgs(removedItem));
         }

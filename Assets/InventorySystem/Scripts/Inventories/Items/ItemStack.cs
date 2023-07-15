@@ -38,7 +38,7 @@ namespace InventorySystem.Inventories.Items
 
         public override string ToString()
         {
-            return $"{Count} x {Item.Name}";
+            return $"{Count} x {Item.ItemName}";
         }
     }
 }

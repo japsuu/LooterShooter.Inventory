@@ -3,11 +3,11 @@
     public enum ClothingType
     {
         Hat = 0,
-        Glasses = 10,
-        Mask = 20,
-        Shirt = 30,
-        Vest = 40,
-        Backpack = 50,
-        Pants = 60,
+        Glasses = 1,
+        Mask = 2,
+        Shirt = 3,
+        Vest = 4,
+        Backpack = 5,
+        Pants = 6,
     }
 }

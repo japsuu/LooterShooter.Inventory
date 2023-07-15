@@ -30,14 +30,14 @@ namespace InventorySystem.Inventories.Items
 
         public void RequestMove(IInventory newInventory, Vector2Int newPosition, ItemRotation newRotation)
         {
-            Logger.Log(LogLevel.DEBUG, $"{nameof(InventoryItem)}: {Metadata.ItemData.Name}", $"RequestMove: {Bounds.Position} -> {newPosition}, {RotationInInventory} -> {newRotation}");
+            Logger.Log(LogLevel.DEBUG, $"{nameof(InventoryItem)}: {Metadata.ItemData.ItemName}", $"RequestMove: {Bounds.Position} -> {newPosition}, {RotationInInventory} -> {newRotation}");
             if (!IsMoveValid(newInventory, newPosition, newRotation))
                 return;
 
             // Check that new inventory can create a new InventoryItem for the moved item.
             if (!newInventory.TryCreateNewInventoryItem(Metadata, newPosition, newRotation, Bounds, out InventoryItem newItem))
             {
-                Logger.Log(LogLevel.DEBUG, $"{nameof(InventoryItem)}: {Metadata.ItemData.Name}", $"newInventory '{newInventory.Name}' can't create new {nameof(InventoryItem)} @ {newPosition}.");
+                Logger.Log(LogLevel.DEBUG, $"{nameof(InventoryItem)}: {Metadata.ItemData.ItemName}", $"newInventory '{newInventory.Name}' can't create new {nameof(InventoryItem)} @ {newPosition}.");
                 return;
             }
 
@@ -51,7 +51,7 @@ namespace InventorySystem.Inventories.Items
             // Check that new inventory is valid.
             if (newInventory == null)
             {
-                Logger.Log(LogLevel.WARN, $"{nameof(InventoryItem)}: {Metadata.ItemData.Name}", "newInventory is null!");
+                Logger.Log(LogLevel.WARN, $"{nameof(InventoryItem)}: {Metadata.ItemData.ItemName}", "newInventory is null!");
                 return false;
             }
 
@@ -65,7 +65,7 @@ namespace InventorySystem.Inventories.Items
             
             Logger.Log(
                 LogLevel.DEBUG,
-                $"{nameof(InventoryItem)}: {Metadata.ItemData.Name}",
+                $"{nameof(InventoryItem)}: {Metadata.ItemData.ItemName}",
                 "movement is not valid because position, rotation or inventory did NOT change.");
             
             return false;

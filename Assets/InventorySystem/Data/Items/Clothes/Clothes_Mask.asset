@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Clothes_Mask
   m_EditorClassIdentifier: 
   _guid:
-    _serializedGuid: 35237e10-d6ef-433d-acc8-169abfb47d28
+    _serializedGuid: a56bdc2a-f012-48c4-b82d-6744e9bdd9c1
   _itemName: Test Mask
   _itemDescription: corona
   _itemSprite: {fileID: 21300000, guid: 1d8a7c645ac03814388dec681af68eb3, type: 3}
   _itemType: 40
   _inventorySizeX: 3
   _inventorySizeY: 3
-  _clothingType: 20
+  _clothingType: 2
   _containedInventoryWidth: 2
   _containedInventoryHeight: 3

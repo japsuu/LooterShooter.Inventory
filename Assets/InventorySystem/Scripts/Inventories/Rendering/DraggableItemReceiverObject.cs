@@ -17,7 +17,7 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void OnEndDrag(DraggableItem draggedItem)
+        public void OnDroppedDraggableItem(DraggableItem draggedItem)
         {
             if(draggedItem == null)
                 return;

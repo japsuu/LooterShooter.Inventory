@@ -14,17 +14,49 @@ namespace InventorySystem.InventorySlots
         {
             ItemType.CLOTHING
         };
-
-
+        
         [SerializeField] private ClothingType _acceptedClothingType;
         [SerializeField] private Button _removeButton;
 
+        public ClothingType AcceptedClothingType => _acceptedClothingType;
 
+        
         protected override void Awake()
         {
             base.Awake();
 
             _removeButton.gameObject.SetActive(false);
+        }
+        
+        
+        private void OnEnable()
+        {
+            PlayerClothingManager.EquippedClothesChanged += OnEquippedClothesChanged;
+        }
+
+
+        private void OnDisable()
+        {
+            PlayerClothingManager.EquippedClothesChanged -= OnEquippedClothesChanged;
+        }
+
+
+        private void OnEquippedClothesChanged(ClothingType type, ItemMetadata itemMetadata)
+        {
+            if(type != _acceptedClothingType)
+                return;
+            
+            if (itemMetadata == null)
+            {
+                RemoveItem(Vector2Int.zero);
+            }
+            else
+            {
+                InventoryBounds bounds = new(itemMetadata.ItemData, Vector2Int.zero, ItemRotation.DEG_0);
+                InventoryItem newItem = new(itemMetadata, bounds, ItemRotation.DEG_0, this);
+                
+                AddItem(newItem);
+            }
         }
 
 
@@ -33,10 +65,10 @@ namespace InventorySystem.InventorySlots
             if (!base.CanDropDraggableItem(draggableItem))
                 return false;
 
-            if (draggableItem.InventoryItem.Metadata.ItemData is not ClothingItem clothing)
+            if (draggableItem.InventoryItem.Metadata.ItemData is not ClothingItemData clothing)
                 return false;
             
-            return clothing.Type == _acceptedClothingType;
+            return clothing.ClothingType == _acceptedClothingType;
         }
 
 
@@ -44,10 +76,8 @@ namespace InventorySystem.InventorySlots
         {
             base.OnItemAdded();
 
-            if (AssignedItem.Metadata.ItemData is not ClothingItem clothing)
+            if (AssignedItem.Metadata.ItemData is not ClothingItemData)
                 return;
-
-            PlayerClothingManager.Singleton.TryEquipClothes(clothing);
             
             _removeButton.gameObject.SetActive(true);
             _removeButton.onClick.AddListener(RequestRemoveClothing);
@@ -58,14 +88,22 @@ namespace InventorySystem.InventorySlots
         {
             base.OnItemRemoved(itemMetadata);
 
-            if (itemMetadata.ItemData is not ClothingItem clothing)
+            if (itemMetadata.ItemData is not ClothingItemData clothing)
                 return;
             
+            PlayerClothingManager.Singleton.RequestRemoveClothes(clothing.ClothingType);
             PlayerInventoryManager.Singleton.TryAddItems(itemMetadata, 1);
-            PlayerClothingManager.Singleton.TryRemoveClothes(clothing.Type);
             
             _removeButton.onClick.RemoveListener(RequestRemoveClothing);
             _removeButton.gameObject.SetActive(false);
+        }
+
+
+        protected override void HandleDroppedDraggableItem(DraggableItem draggableItem)
+        {
+            base.HandleDroppedDraggableItem(draggableItem);
+            
+            PlayerClothingManager.Singleton.RequestEquipClothes(AssignedItem.Metadata);
         }
 
 

@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Clothes_Glasses
   m_EditorClassIdentifier: 
   _guid:
-    _serializedGuid: 35237e10-d6ef-433d-acc8-169abfb47d28
+    _serializedGuid: 749a553f-179b-4aac-ac12-05b8f867e5a3
   _itemName: Test Glasses
   _itemDescription: klass
   _itemSprite: {fileID: 21300000, guid: 741225936c16b9b4787e5106335749a4, type: 3}
   _itemType: 40
   _inventorySizeX: 2
   _inventorySizeY: 1
-  _clothingType: 10
+  _clothingType: 1
   _containedInventoryWidth: 2
   _containedInventoryHeight: 1

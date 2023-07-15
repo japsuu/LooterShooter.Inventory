@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Clothes_Shirt
   m_EditorClassIdentifier: 
   _guid:
-    _serializedGuid: 35237e10-d6ef-433d-acc8-169abfb47d28
+    _serializedGuid: 28a86299-362e-496f-942a-0a44b5d48ec5
   _itemName: Test Shirt
   _itemDescription: T-shirt!
   _itemSprite: {fileID: 21300000, guid: e8120855eb8d7154d8fb31db104981df, type: 3}
   _itemType: 40
   _inventorySizeX: 3
   _inventorySizeY: 3
-  _clothingType: 30
+  _clothingType: 3
   _containedInventoryWidth: 5
   _containedInventoryHeight: 3

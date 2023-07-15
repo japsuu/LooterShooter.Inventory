@@ -34,8 +34,8 @@ namespace InventorySystem.Inventories.Items
                 Logger.Log(
                     LogLevel.ERROR,
                     _database.TryGetValue(item.Guid, out ItemData registeredItem)
-                        ? $"{nameof(ItemData)} '{item.Name}' (GUID: {item.Guid}) will not get registered as it's GUID clashes with {nameof(ItemData)} '{registeredItem.Name}'."
-                        : $"{nameof(ItemData)} '{item.Name}' (GUID: {item.Guid}) could not be registered.");
+                        ? $"{nameof(ItemData)} '{item.ItemName}' (GUID: {item.Guid}) will not get registered as it's GUID clashes with {nameof(ItemData)} '{registeredItem.ItemName}'."
+                        : $"{nameof(ItemData)} '{item.ItemName}' (GUID: {item.Guid}) could not be registered.");
             }
         }
 

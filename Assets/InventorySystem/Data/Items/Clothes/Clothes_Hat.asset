@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Clothes_Hat
   m_EditorClassIdentifier: 
   _guid:
-    _serializedGuid: 35237e10-d6ef-433d-acc8-169abfb47d28
+    _serializedGuid: bd00e49b-450a-4488-a167-be61103da76a
   _itemName: Test Hat
   _itemDescription: HattuHattu
   _itemSprite: {fileID: 21300000, guid: 5bb878c7eccf41b4392cd7eaeed97195, type: 3}

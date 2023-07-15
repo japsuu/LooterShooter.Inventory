@@ -42,7 +42,7 @@ namespace InventorySystem.InventorySlots
         
         private void Selected()
         {
-            string item = AssignedItem == null ? "None" : AssignedItem.Metadata.ItemData.Name;
+            string item = AssignedItem == null ? "None" : AssignedItem.Metadata.ItemData.ItemName;
             Logger.Log(LogLevel.INFO, Name, $"SelectedItem: {item}.");
         }
 
@@ -93,7 +93,7 @@ namespace InventorySystem.InventorySlots
         {
             base.OnItemAdded();
             
-            _itemNameText.text = AssignedItem.Metadata.ItemData.Name;
+            _itemNameText.text = AssignedItem.Metadata.ItemData.ItemName;
         }
 
 

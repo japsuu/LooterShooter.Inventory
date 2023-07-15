@@ -1,33 +1,42 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using InventorySystem.Clothing;
 using InventorySystem.Inventories.Items;
-using InventorySystem.Inventories.Rendering;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace InventorySystem.Inventories
 {
     /// <summary>
-    /// Controls multiple child <see cref="SpatialInventory"/>s.TODO: Split to manager and an event-based renderer.
+    /// Controls the player's <see cref="SpatialInventory"/>s.
     /// </summary>
     [DefaultExecutionOrder(-101)]
     public class PlayerInventoryManager : MonoBehaviour
     {
+        // Singleton.
         public static PlayerInventoryManager Singleton;
-        
-        [Header("References")]
-        [SerializeField] private SpatialInventoryRenderer _spatialInventoryRendererPrefab;
-        [SerializeField] private RectTransform _inventoryRenderersRoot;
-        
-        [Header("Base Inventory")]
-        [SerializeField] private string _baseInventoryName = "Pockets";
-        [SerializeField, Min(0)] private int _baseInventoryWidth = 4;
-        [SerializeField, Min(0)] private int _baseInventoryHeight = 3;
 
-        [SerializeField] private List<ItemData> _startingItems;
+        // Events.
+        public static event Action<SpatialInventory> BaseInventoryChanged;
+        public static event Action<ClothingType, ClothingInventory> EquippedClothesInventoryChanged;
 
-        private Dictionary<string, SpatialInventory> _inventories;
-        private Dictionary<string, SpatialInventoryRenderer> _renderers;
+        // Serialized fields.
+        // [Header("References")]
 
-        public bool HasSomethingInInventory => GetAllItems().Count > 0;
+        // [SerializeField] private ClothingInventoryRenderer _clothingInventoryRendererPrefab;
+        //[SerializeField] private RectTransform _inventoryRenderersRoot;
+
+        // [Header("Base Inventory")]
+        // [SerializeField] private string _baseInventoryName = "Pockets";
+        // [SerializeField, Min(0)] private int _baseInventoryWidth = 4;
+        // [SerializeField, Min(0)] private int _baseInventoryHeight = 3;
+        // [SerializeField] private List<ItemData> _startingItems;
+
+        // Privates.
+        //private SpatialInventory _baseInventory;                                    //BUG: Save this.
+        private SortedDictionary<ClothingType, ClothingInventory> _clothingInventories;   //BUG: Save this.
+
+        // public bool HasSomethingInInventory => GetAllItems().Count > 0;
 
 
         private void Awake()
@@ -35,107 +44,102 @@ namespace InventorySystem.Inventories
             if (Singleton == null)
                 Singleton = this;
             
-            _inventories = new();
-            _renderers = new();
+            _clothingInventories = new(new EnumValueComparer<ClothingType>());
             
             // Destroy all children >:).
-            for (int i = _inventoryRenderersRoot.childCount - 1; i >= 0; i--)
-            {
-                Destroy(_inventoryRenderersRoot.GetChild(i).gameObject);
-            }
+            // for (int i = _inventoryRenderersRoot.childCount - 1; i >= 0; i--)
+            // {
+            //     Destroy(_inventoryRenderersRoot.GetChild(i).gameObject);
+            // }
         }
 
 
-        private void Start()
+        private void OnEnable()
         {
-            // Add base inventory.
-            AddInventory(_baseInventoryName, _baseInventoryWidth, _baseInventoryHeight);
-
-            foreach (ItemData startingItem in _startingItems)
-            {
-                TryAddItems(new ItemMetadata(startingItem), 1);
-            }
+            PlayerClothingManager.EquippedClothesChanged += OnEquippedClothesChanged;
         }
 
 
-        public void AddInventory(string inventoryName, int width, int height)
+        private void OnDisable()
         {
-            if(width < 1 || height < 1)
-                return;
-            
-            SpatialInventory spatialInventory = Persistence.Singleton.GetSpatialInventoryByName(inventoryName, width, height);
-            
-            SpatialInventoryRenderer spatialInventoryRenderer = Instantiate(_spatialInventoryRendererPrefab, _inventoryRenderersRoot);
-            spatialInventoryRenderer.RenderInventory(spatialInventory, inventoryName);
-            
-            spatialInventory.AddedItem += OnAddedItem;
-            spatialInventory.RemovedItem += OnRemovedItem;
-
-            _inventories.Add(inventoryName, spatialInventory);
-            _renderers.Add(inventoryName, spatialInventoryRenderer);
-            
-            Logger.Log(LogLevel.DEBUG, $"{nameof(SpatialInventory)}: {gameObject.name}", $"AddInventory '{spatialInventory}'");
+            PlayerClothingManager.EquippedClothesChanged -= OnEquippedClothesChanged;
         }
 
 
-        private void OnAddedItem(AddItemEventArgs addItemEventArgs)
+        private void OnEquippedClothesChanged(ClothingType type, [CanBeNull]ItemMetadata newClothesItemMetadata)
         {
-            if (_renderers.TryGetValue(addItemEventArgs.AddedItem.ContainingInventory.Name, out SpatialInventoryRenderer inventoryRenderer))
-            {
-                inventoryRenderer.CreateNewDraggableItem(addItemEventArgs.AddedItem);
-            }
-        }
-
-
-        private void OnRemovedItem(RemoveItemEventArgs removeItemEventArgs)
-        {
-            if (_renderers.TryGetValue(removeItemEventArgs.RemovedItem.ContainingInventory.Name, out SpatialInventoryRenderer inventoryRenderer))
-            {
-                inventoryRenderer.RemoveEntityOfItem(removeItemEventArgs.RemovedItem);
-            }
-        }
-
-
-        public void RemoveInventory(string inventoryName)
-        {
-            if (!_inventories.Remove(inventoryName, out SpatialInventory inventory))
-            {
-                Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", $"Could not get the inventory with the given name ({inventoryName}).");
-                return;
-            }
+            bool hasExistingInventory = _clothingInventories.Remove(type, out ClothingInventory existingInventory);
             
-            inventory.AddedItem -= OnAddedItem;
-            inventory.RemovedItem -= OnRemovedItem;
-            
-            Persistence.Singleton.RemoveSpatialInventoryFromSaving(inventory);
+            if (newClothesItemMetadata == null)
+            {
+                // If there is no existing inventory, return.
+                if (!hasExistingInventory)
+                    return;
                 
-            if (_renderers.Remove(inventoryName, out SpatialInventoryRenderer inventoryRenderer))
-            {
-                Destroy(inventoryRenderer.gameObject);
+                // Empty the contents of the inventory to other inventories.                    
+                foreach (InventoryItem item in existingInventory.Inventory.GetAllItems())
+                {
+                    // Try adding the item to other inventories.
+                    if (TryAddItems(item.Metadata, 1).Count >= 1)
+                        continue;
+
+                    //TODO: Drop items to ground or something?
+                    Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", $"NotImplemented: DropItem ({item.Metadata.ItemData.ItemName})");
+                }
+                EquippedClothesInventoryChanged?.Invoke(type, null);
+                return;
             }
 
-            foreach (InventoryItem item in inventory.GetAllItems())
+            ClothingItemData clothingData = newClothesItemMetadata.ItemData as ClothingItemData;
+
+            if (clothingData == null)
             {
-                if (TryAddItems(item.Metadata, 1).Count < 1)
+                Logger.Log(LogLevel.ERROR, $"Tried to add inventory for equipped clothes from item ({newClothesItemMetadata.ItemData.ItemName}) that wasn't an clothing.");
+                return;
+            }
+
+            // Try adding the new inventory if required.
+            if (clothingData.ContainedInventoryWidth <= 0 || clothingData.ContainedInventoryHeight <= 0)
+            {
+                EquippedClothesInventoryChanged?.Invoke(type, null);
+                return;
+            }
+            
+            ClothingInventory newInventory = GetClothingInventory(newClothesItemMetadata);
+
+            // If we replaced an inventory.
+            if (hasExistingInventory)
+            {
+                // Empty the contents of the inventory to other inventories.                    
+                foreach (InventoryItem item in existingInventory.Inventory.GetAllItems())
                 {
-                    //TODO: Drop items to ground or something? Add them to the (possible) new inventory that replaced this?
-                    Logger.Log(
-                        LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}",
-                        "NotImplemented: I have no idea what to do with the items from the inventory you just removed!");
+                    int itemsAddedToReplacingInventory = newInventory.Inventory.AddItems(item.Metadata, 1).Count;
+                    if (itemsAddedToReplacingInventory >= 1)
+                        continue;
+
+                    int itemsAddedToOtherInventories = TryAddItems(item.Metadata, 1).Count;
+                    if (itemsAddedToOtherInventories >= 1)
+                        continue;
+
+                    //TODO: Drop items to ground or something?
+                    Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {gameObject.name}", "NotImplemented: DropItem.");
                 }
             }
+
+            _clothingInventories[type] = newInventory;
+            EquippedClothesInventoryChanged?.Invoke(type, newInventory);
         }
 
-
+        
         public List<InventoryItem> TryAddItems(ItemMetadata metadata, int count)
         {
             List<InventoryItem> results = new();
-            foreach (SpatialInventory inventory in _inventories.Values)
+            foreach (ClothingInventory clothes in _clothingInventories.Values)
             {
                 if (results.Count == count)
                     return results;
                 
-                results.AddRange(inventory.RequestAddItems(metadata, count));
+                results.AddRange(clothes.Inventory.AddItems(metadata, count));
             }
 
             return results;
@@ -146,18 +150,16 @@ namespace InventorySystem.Inventories
         /// Tries to remove the given amount of defined itemData.
         /// We're using pure <see cref="ItemData"/> instead of <see cref="ItemMetadata"/>, since when removing items we probably do not care about the metadata of an item.
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="count"></param>
-        /// <returns></returns>
+        /// <returns>Removed items.</returns>
         public List<InventoryItem> TryRemoveItems(ItemData data, int count)
         {
             List<InventoryItem> results = new();
-            foreach (SpatialInventory inventory in _inventories.Values)
+            foreach (ClothingInventory clothes in _clothingInventories.Values)
             {
                 if (results.Count == count)
                     return results;
-                
-                results.AddRange(inventory.RequestRemoveItems(data, count));
+
+                results.AddRange(clothes.Inventory.RemoveItems(data, count));
             }
 
             return results;
@@ -167,9 +169,9 @@ namespace InventorySystem.Inventories
         public List<InventoryItem> GetAllItemsOfType(ItemData itemData)
         {
             List<InventoryItem> results = new();
-            foreach (SpatialInventory inventory in _inventories.Values)
+            foreach (ClothingInventory clothes in _clothingInventories.Values)
             {
-                results.AddRange(inventory.GetAllItemsOfType(itemData));
+                results.AddRange(clothes.Inventory.GetAllItemsOfType(itemData));
             }
 
             return results;
@@ -179,12 +181,34 @@ namespace InventorySystem.Inventories
         public List<InventoryItem> GetAllItems()
         {
             List<InventoryItem> results = new();
-            foreach (SpatialInventory inventory in _inventories.Values)
+            foreach (ClothingInventory clothes in _clothingInventories.Values)
             {
-                results.AddRange(inventory.GetAllItems());
+                results.AddRange(clothes.Inventory.GetAllItems());
             }
 
             return results;
+        }
+
+
+        // private void Start()
+        // {
+        //     // Add base inventory.
+        //     AddClothingInventory(_baseInventoryName, _baseInventoryWidth, _baseInventoryHeight);
+        //
+        //     foreach (ItemData startingItem in _startingItems)
+        //     {
+        //         TryAddItems(new ItemMetadata<ItemData>(startingItem), 1);
+        //     }
+        // }
+
+
+        private ClothingInventory GetClothingInventory(ItemMetadata clothingItemMetadata)
+        {
+            //SpatialInventory spatialInventory = SaveSystem.Singleton.GetSpatialInventoryByName(inventoryName, width, height);
+
+            ClothingItemData clothingData = (ClothingItemData)clothingItemMetadata.ItemData;
+            SpatialInventory inventory = new($"clothes_{clothingData.ClothingType.ToString()}", clothingData.ContainedInventoryWidth, clothingData.ContainedInventoryHeight);
+            return new ClothingInventory(clothingItemMetadata, inventory);
         }
     }
 }

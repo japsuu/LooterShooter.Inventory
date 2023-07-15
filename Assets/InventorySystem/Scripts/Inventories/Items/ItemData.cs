@@ -22,7 +22,7 @@ namespace InventorySystem.Inventories.Items
         [SerializeField, Min(1)] private int _inventorySizeY = 1;
 
         public Guid Guid => _guid;
-        public string Name => _itemName;
+        public string ItemName => _itemName;
         public Sprite Sprite => _itemSprite;
         public string Description => _itemDescription;
         public int InventorySizeX => _inventorySizeX;

@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Clothes_Backpack
   m_EditorClassIdentifier: 
   _guid:
-    _serializedGuid: 35237e10-d6ef-433d-acc8-169abfb47d28
+    _serializedGuid: f1a7eecd-d39a-4965-b9d3-706b5a78e7a9
   _itemName: Test Backpack
   _itemDescription: packback
   _itemSprite: {fileID: 21300000, guid: 6312bc341c87c704087f693559a7a40c, type: 3}
   _itemType: 40
   _inventorySizeX: 4
   _inventorySizeY: 4
-  _clothingType: 50
+  _clothingType: 5
   _containedInventoryWidth: 8
   _containedInventoryHeight: 7

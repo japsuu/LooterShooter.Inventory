@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Clothes_Pants
   m_EditorClassIdentifier: 
   _guid:
-    _serializedGuid: 62c02415-2c72-44a2-8ac9-8367ab806369
+    _serializedGuid: 533ec6ad-4a71-4424-99bf-1fda01520a2c
   _itemName: Test Pants
   _itemDescription: Pantalones :)
   _itemSprite: {fileID: 21300000, guid: 6063f1ad053083f41abe13b122487afd, type: 3}
   _itemType: 40
   _inventorySizeX: 2
   _inventorySizeY: 3
-  _clothingType: 60
+  _clothingType: 6
   _containedInventoryWidth: 3
   _containedInventoryHeight: 6

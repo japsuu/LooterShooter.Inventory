@@ -25,8 +25,11 @@ namespace InventorySystem.Inventories.Rendering
         }
 
 
-        public void Initialize(SpatialInventory targetSpatialInventory, float width, float height)
+        public void Initialize(SpatialInventory targetSpatialInventory)
         {
+            float width = targetSpatialInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
+            float height = targetSpatialInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
+            
             _targetSpatialInventory = targetSpatialInventory;
             
             // Resize the grid.

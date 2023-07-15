@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: Clothes_Vest
   m_EditorClassIdentifier: 
   _guid:
-    _serializedGuid: 35237e10-d6ef-433d-acc8-169abfb47d28
+    _serializedGuid: fbfece59-afa3-4d1d-b00c-73618f676d69
   _itemName: Test Vest
   _itemDescription: A t-shirt but not a t-shirt!
   _itemSprite: {fileID: 21300000, guid: 9b52740bb459b354384992fa780a7349, type: 3}
   _itemType: 40
   _inventorySizeX: 3
   _inventorySizeY: 4
-  _clothingType: 40
+  _clothingType: 4
   _containedInventoryWidth: 7
   _containedInventoryHeight: 4

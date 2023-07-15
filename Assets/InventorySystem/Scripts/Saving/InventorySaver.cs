@@ -1,33 +1,29 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using InventorySystem.Clothing;
 using InventorySystem.Inventories;
 using InventorySystem.Inventories.Serialization;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace InventorySystem
+namespace InventorySystem.Saving
 {
-    [DefaultExecutionOrder(-1000)]
-    public class Persistence : MonoBehaviour
+    public class InventorySaver
     {
-        public static Persistence Singleton;
-        
-        private const string INVENTORY_SAVE_FILE_NAME = "inventory_snapshots.txt";
-
+        private readonly string _saveFileName;
         private Dictionary<string, SpatialInventory> _loadedInventories;
         private Dictionary<string, SpatialInventory> _spatialInventoriesToSave;
 
 
-#if UNITY_EDITOR
-        [UnityEditor.MenuItem("Looter Shooter/Open Save Folder")]
-        private static void OpenSaveFolder()
+        public InventorySaver(string saveFileName)
         {
-            Process.Start(Application.persistentDataPath);
+            _saveFileName = saveFileName;
+            
+            _loadedInventories = new();
+            _spatialInventoriesToSave = new();
+            LoadInventories();
         }
-#endif
 
 
         public SpatialInventory GetSpatialInventoryByName(string inventoryName, int width, int height)
@@ -60,35 +56,13 @@ namespace InventorySystem
         }
 
 
-        private void Awake()
-        {
-            if (Singleton != null)
-            {
-                Logger.Log(LogLevel.ERROR, $"Multiple {nameof(Persistence)} found in scene!");
-                return;
-            }
-            
-            Singleton = this;
-            
-            _loadedInventories = new();
-            _spatialInventoriesToSave = new();
-            LoadInventories();
-        }
-
-
-        private void OnApplicationQuit()
-        {
-            SaveInventories();
-        }
-
-
         private void AddSpatialInventoryForSaving(SpatialInventory toSave)
         {
             if (!_spatialInventoriesToSave.TryAdd(toSave.Name, toSave))
             {
                 Logger.Log(
                     LogLevel.ERROR,
-                    nameof(Persistence), 
+                    nameof(SaveSystem), 
                     $"Cannot register inventory '{toSave.Name}' for saving, as an existing inventory with the same name is already registered.");
             }
         }
@@ -103,7 +77,7 @@ namespace InventorySystem
 
         private void LoadInventories()
         {
-            string json = ReadJsonFromFile(INVENTORY_SAVE_FILE_NAME);
+            string json = ReadJsonFromFile(_saveFileName);
 
             if (string.IsNullOrEmpty(json))
             {
@@ -141,7 +115,7 @@ namespace InventorySystem
             }
 
             string json = JsonConvert.SerializeObject(toSave, Formatting.Indented, new SpatialInventoryConverter());
-            WriteJsonToFile(INVENTORY_SAVE_FILE_NAME, json);
+            WriteJsonToFile(_saveFileName, json);
         }
 
         private static void WriteJsonToFile(string fileName, string json)
@@ -173,5 +147,14 @@ namespace InventorySystem
         {
             return Application.persistentDataPath + "/" + fileName;
         }
+
+
+#if UNITY_EDITOR
+        [UnityEditor.MenuItem("Looter Shooter/Open Save Folder")]
+        private static void OpenSaveFolder()
+        {
+            Process.Start(Application.persistentDataPath);
+        }
+#endif
     }
 }
