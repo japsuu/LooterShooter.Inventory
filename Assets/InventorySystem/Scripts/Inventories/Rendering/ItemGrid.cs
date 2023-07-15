@@ -17,16 +17,10 @@ namespace InventorySystem.Inventories.Rendering
         public override bool DoSnapHighlighterToGrid => true;
 
 
-        protected override void Awake()
-        {
-            base.Awake();
-            
-            _slotsImage = GetComponent<Image>();
-        }
-
-
         public void Initialize(SpatialInventory targetSpatialInventory)
         {
+            _slotsImage = GetComponent<Image>();
+            
             float width = targetSpatialInventory.Bounds.Width * Utilities.INVENTORY_SLOT_SIZE;
             float height = targetSpatialInventory.Bounds.Height * Utilities.INVENTORY_SLOT_SIZE;
             

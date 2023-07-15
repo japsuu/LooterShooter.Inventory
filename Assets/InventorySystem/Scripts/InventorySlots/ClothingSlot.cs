@@ -92,7 +92,9 @@ namespace InventorySystem.InventorySlots
                 return;
             
             PlayerClothingManager.Singleton.RequestRemoveClothes(clothing.ClothingType);
-            PlayerInventoryManager.Singleton.TryAddItems(itemMetadata, 1);
+            
+            if(PlayerInventoryManager.Singleton.TryAddItems(itemMetadata, 1).Count < 1)
+                Logger.Log(LogLevel.WARN, "Could not add the removed clothing item to inventory!");
             
             _removeButton.onClick.RemoveListener(RequestRemoveClothing);
             _removeButton.gameObject.SetActive(false);

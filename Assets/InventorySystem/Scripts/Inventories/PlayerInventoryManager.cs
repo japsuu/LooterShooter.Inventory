@@ -20,20 +20,13 @@ namespace InventorySystem.Inventories
         public static event Action<SpatialInventory> BaseInventoryChanged;
         public static event Action<ClothingType, ClothingInventory> EquippedClothesInventoryChanged;
 
-        // Serialized fields.
-        // [Header("References")]
-
-        // [SerializeField] private ClothingInventoryRenderer _clothingInventoryRendererPrefab;
-        //[SerializeField] private RectTransform _inventoryRenderersRoot;
-
-        // [Header("Base Inventory")]
-        // [SerializeField] private string _baseInventoryName = "Pockets";
-        // [SerializeField, Min(0)] private int _baseInventoryWidth = 4;
-        // [SerializeField, Min(0)] private int _baseInventoryHeight = 3;
-        // [SerializeField] private List<ItemData> _startingItems;
+        [Header("Base Inventory")]
+        [SerializeField] private string _baseInventoryName = "Underwear";
+        [SerializeField, Min(0)] private int _baseInventoryWidth = 4;
+        [SerializeField, Min(0)] private int _baseInventoryHeight = 3;
 
         // Privates.
-        //private SpatialInventory _baseInventory;                                    //BUG: Save this.
+        private SpatialInventory _baseInventory;                                    //BUG: Save this.
         private SortedDictionary<ClothingType, ClothingInventory> _clothingInventories;   //BUG: Save this.
 
         // public bool HasSomethingInInventory => GetAllItems().Count > 0;
@@ -45,12 +38,15 @@ namespace InventorySystem.Inventories
                 Singleton = this;
             
             _clothingInventories = new(new EnumValueComparer<ClothingType>());
+        }
+
+
+        private void Start()
+        {
+            // Add base inventory.
+            _baseInventory = GetBaseInventory();
             
-            // Destroy all children >:).
-            // for (int i = _inventoryRenderersRoot.childCount - 1; i >= 0; i--)
-            // {
-            //     Destroy(_inventoryRenderersRoot.GetChild(i).gameObject);
-            // }
+            BaseInventoryChanged?.Invoke(_baseInventory);
         }
 
 
@@ -134,6 +130,9 @@ namespace InventorySystem.Inventories
         public List<InventoryItem> TryAddItems(ItemMetadata metadata, int count)
         {
             List<InventoryItem> results = new();
+            
+            results.AddRange(_baseInventory.AddItems(metadata, count));
+            
             foreach (ClothingInventory clothes in _clothingInventories.Values)
             {
                 if (results.Count == count)
@@ -154,6 +153,9 @@ namespace InventorySystem.Inventories
         public List<InventoryItem> TryRemoveItems(ItemData data, int count)
         {
             List<InventoryItem> results = new();
+            
+            results.AddRange(_baseInventory.RemoveItems(data, count));
+            
             foreach (ClothingInventory clothes in _clothingInventories.Values)
             {
                 if (results.Count == count)
@@ -169,6 +171,9 @@ namespace InventorySystem.Inventories
         public List<InventoryItem> GetAllItemsOfType(ItemData itemData)
         {
             List<InventoryItem> results = new();
+            
+            results.AddRange(_baseInventory.GetAllItemsOfType(itemData));
+
             foreach (ClothingInventory clothes in _clothingInventories.Values)
             {
                 results.AddRange(clothes.Inventory.GetAllItemsOfType(itemData));
@@ -181,6 +186,9 @@ namespace InventorySystem.Inventories
         public List<InventoryItem> GetAllItems()
         {
             List<InventoryItem> results = new();
+            
+            results.AddRange(_baseInventory.GetAllItems());
+
             foreach (ClothingInventory clothes in _clothingInventories.Values)
             {
                 results.AddRange(clothes.Inventory.GetAllItems());
@@ -190,18 +198,6 @@ namespace InventorySystem.Inventories
         }
 
 
-        // private void Start()
-        // {
-        //     // Add base inventory.
-        //     AddClothingInventory(_baseInventoryName, _baseInventoryWidth, _baseInventoryHeight);
-        //
-        //     foreach (ItemData startingItem in _startingItems)
-        //     {
-        //         TryAddItems(new ItemMetadata<ItemData>(startingItem), 1);
-        //     }
-        // }
-
-
         private ClothingInventory GetClothingInventory(ItemMetadata clothingItemMetadata)
         {
             //SpatialInventory spatialInventory = SaveSystem.Singleton.GetSpatialInventoryByName(inventoryName, width, height);
@@ -209,6 +205,16 @@ namespace InventorySystem.Inventories
             ClothingItemData clothingData = (ClothingItemData)clothingItemMetadata.ItemData;
             SpatialInventory inventory = new($"clothes_{clothingData.ClothingType.ToString()}", clothingData.ContainedInventoryWidth, clothingData.ContainedInventoryHeight);
             return new ClothingInventory(clothingItemMetadata, inventory);
+        }
+
+
+        private SpatialInventory GetBaseInventory()
+        {
+            if (_baseInventoryWidth <= 0 || _baseInventoryHeight <= 0)
+                return null;
+            
+            return new SpatialInventory(_baseInventoryName, _baseInventoryWidth, _baseInventoryHeight);
+
         }
     }
 }

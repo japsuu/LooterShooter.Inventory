@@ -27,11 +27,7 @@ namespace InventorySystem.Inventories.Rendering
             {
                 Destroy(_draggableItemsRootTransform.GetChild(i).gameObject);
             }
-        }
-
-
-        private void Start()
-        {
+            
             foreach (Transform child in transform)
             {
                 child.gameObject.SetActive(false);
@@ -58,7 +54,7 @@ namespace InventorySystem.Inventories.Rendering
             if (!ShouldRenderBaseInventory())
                 return;
             
-            RenderNewBaseInventory();
+            RenderNewBaseInventory(baseInventory);
             
             foreach (Transform child in transform)
             {
@@ -85,7 +81,47 @@ namespace InventorySystem.Inventories.Rendering
         protected virtual bool ShouldRenderClothingInventory(ClothingType clothingType) => false;
 
 
-        protected virtual void RenderNewBaseInventory() { }
+        protected virtual void RenderNewBaseInventory(SpatialInventory spatialInventory) { }
         protected virtual void RenderNewClothingInventory(ClothingInventory clothingInventory) { }
+        
+        
+        protected virtual void OnInventoryAddedItem(AddItemEventArgs obj) => CreateNewDraggableItem(obj.AddedItem);
+
+
+        protected virtual void OnInventoryRemovedItem(RemoveItemEventArgs obj) => RemoveEntityOfItem(obj.RemovedItem);
+
+
+        protected virtual void CreateNewDraggableItem(InventoryItem inventoryItem)
+        {
+            DraggableItem draggableItem = Instantiate(PrefabReferences.Singleton.DraggableItemPrefab, _draggableItemsRootTransform);
+
+            draggableItem.Initialize(inventoryItem, false);
+            
+            DraggableItems.Add(inventoryItem, draggableItem);
+            
+            Logger.Log(LogLevel.DEBUG, gameObject.name, $"CreateNewDraggable '{inventoryItem.Metadata.ItemData.ItemName}'@{inventoryItem.Bounds.Position}");
+        }
+
+
+        protected virtual void RemoveEntityOfItem(InventoryItem inventoryItemSnapshot)
+        {
+            if (DraggableItems.Remove(inventoryItemSnapshot, out DraggableItem entity))
+            {
+                if(entity != null)
+                    Destroy(entity.gameObject);
+            }
+        }
+
+
+        protected virtual void RemoveAllEntities()
+        {
+            foreach (InventoryItem item in DraggableItems.Keys)
+            {
+                if(DraggableItems[item] != null)
+                    Destroy(DraggableItems[item].gameObject);
+            }
+            
+            DraggableItems.Clear();
+        }
     }
 }
