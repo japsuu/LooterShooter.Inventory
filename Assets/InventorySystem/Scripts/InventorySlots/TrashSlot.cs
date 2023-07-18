@@ -7,6 +7,7 @@ namespace InventorySystem.InventorySlots
     public class TrashSlot : ItemSlot
     {
         protected override ItemType[] ItemTypeRestrictions => null;
+        protected override string Identifier => "trash";
 
 
         public override bool CanDropDraggableItem(DraggableItem draggableItem) => true;

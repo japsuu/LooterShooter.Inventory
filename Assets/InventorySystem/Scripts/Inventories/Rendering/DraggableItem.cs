@@ -33,6 +33,9 @@ namespace InventorySystem.Inventories.Rendering
 
         public void Initialize(InventoryItem inventoryItem, bool destroyWhenDropped)
         {
+            RectTransform = GetComponent<RectTransform>();
+            _draggingCanvasGroup = GetComponent<CanvasGroup>();
+            
             _destroyWhenDropped = destroyWhenDropped;
             gameObject.name = $"{nameof(DraggableItem)}: {inventoryItem.Metadata.ItemData.ItemName}";
             InventoryItem = inventoryItem;

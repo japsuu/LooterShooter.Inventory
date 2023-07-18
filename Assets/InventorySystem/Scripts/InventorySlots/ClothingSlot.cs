@@ -18,6 +18,7 @@ namespace InventorySystem.InventorySlots
         [SerializeField] private ClothingType _acceptedClothingType;
         [SerializeField] private Button _removeButton;
 
+        protected override string Identifier => $"clothing_{_acceptedClothingType}";
         public ClothingType AcceptedClothingType => _acceptedClothingType;
 
         
@@ -94,7 +95,7 @@ namespace InventorySystem.InventorySlots
             PlayerClothingManager.Singleton.RequestRemoveClothes(clothing.ClothingType);
             
             if(PlayerInventoryManager.Singleton.TryAddItems(itemMetadata, 1).Count < 1)
-                Logger.Log(LogLevel.WARN, "Could not add the removed clothing item to inventory!");
+                Logger.Out(LogLevel.WARN, "Could not add the removed clothing item to inventory!");
             
             _removeButton.onClick.RemoveListener(RequestRemoveClothing);
             _removeButton.gameObject.SetActive(false);

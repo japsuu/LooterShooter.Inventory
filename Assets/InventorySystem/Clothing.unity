@@ -187,6 +187,10 @@ PrefabInstance:
       value: equipment_weapon_2
       objectReference: {fileID: 0}
     - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
+      propertyPath: _uniqueIdentifier
+      value: weapon_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
       propertyPath: _itemTypeRestrictions.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -642,6 +646,10 @@ PrefabInstance:
     - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
       propertyPath: _uniqueSlotName
       value: equipment_consumable_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
+      propertyPath: _uniqueIdentifier
+      value: consumable_3
       objectReference: {fileID: 0}
     - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
       propertyPath: _itemTypeRestrictions.Array.size
@@ -1302,23 +1310,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _entries:
-  - Key: 49
+  - Key: 282
     ItemsToSpawn:
     - {fileID: 11400000, guid: bbe83859fc273814cb64a335cccccd29, type: 2}
     ClothesToEquip: []
-  - Key: 50
+  - Key: 283
     ItemsToSpawn:
     - {fileID: 11400000, guid: 2196681f09524dd47ad120c6735f693e, type: 2}
     ClothesToEquip: []
-  - Key: 51
+  - Key: 284
     ItemsToSpawn:
     - {fileID: 11400000, guid: 36653cf74d1f6d940ab08c239472828a, type: 2}
     ClothesToEquip: []
-  - Key: 52
+  - Key: 285
     ItemsToSpawn:
     - {fileID: 11400000, guid: 04b1c5e1959394146b2d7a1485288356, type: 2}
     ClothesToEquip: []
-  - Key: 53
+  - Key: 286
     ItemsToSpawn:
     - {fileID: 11400000, guid: 9dfe08ee1ca673d43b1ee32348eb1c8c, type: 2}
     - {fileID: 11400000, guid: d1f45eef65f97e549ab1069834e05f64, type: 2}
@@ -1358,6 +1366,10 @@ PrefabInstance:
     - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
       propertyPath: _uniqueSlotName
       value: equipment_consumable_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
+      propertyPath: _uniqueIdentifier
+      value: consumable_1
       objectReference: {fileID: 0}
     - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
       propertyPath: _itemTypeRestrictions.Array.size
@@ -1822,6 +1834,10 @@ PrefabInstance:
       value: equipment_consumable_4
       objectReference: {fileID: 0}
     - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
+      propertyPath: _uniqueIdentifier
+      value: consumable_4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
       propertyPath: _itemTypeRestrictions.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -1969,6 +1985,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11b93753400f40dd8347452530430625, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _baseInventoryName: Underwear
+  _baseInventoryWidth: 4
+  _baseInventoryHeight: 3
 --- !u!4 &743904620
 Transform:
   m_ObjectHideFlags: 0
@@ -2454,6 +2473,10 @@ PrefabInstance:
       value: equipment_consumable_2
       objectReference: {fileID: 0}
     - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
+      propertyPath: _uniqueIdentifier
+      value: consumable_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
       propertyPath: _itemTypeRestrictions.Array.size
       value: 1
       objectReference: {fileID: 0}
@@ -2643,7 +2666,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1959805482}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.34827384
+  m_Size: 0.34827587
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3033,7 +3056,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.000061035156}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1050118089
@@ -3362,7 +3385,7 @@ GameObject:
   - component: {fileID: 1153278095}
   - component: {fileID: 1153278096}
   m_Layer: 5
-  m_Name: Weapons
+  m_Name: Equipment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4262,6 +4285,10 @@ PrefabInstance:
     - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
       propertyPath: _uniqueSlotName
       value: equipment_weapon_3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
+      propertyPath: _uniqueIdentifier
+      value: weapon_3
       objectReference: {fileID: 0}
     - target: {fileID: 4384146337019479291, guid: e71e0232c66e711459b5f81d737153e4, type: 3}
       propertyPath: _itemTypeRestrictions.Array.size

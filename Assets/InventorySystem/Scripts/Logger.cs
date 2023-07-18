@@ -32,7 +32,7 @@ namespace InventorySystem
 
         [HideInCallstack]
         [Conditional("DEBUG")]
-        public static void Log(LogLevel logLevel, object message)
+        public static void Out(LogLevel logLevel, object message)
         {
             if(!IsLogLevelSufficient(logLevel))
                 return;
@@ -62,7 +62,7 @@ namespace InventorySystem
 
         [HideInCallstack]
         [Conditional("DEBUG")]
-        public static void Log(LogLevel logLevel, string category, string message)
+        public static void Out(LogLevel logLevel, string category, string message)
         {
             if(!IsLogLevelSufficient(logLevel))
                 return;
@@ -92,7 +92,7 @@ namespace InventorySystem
 
         [HideInCallstack]
         [Conditional("DEBUG")]
-        public static void Log(LogLevel logLevel, object message, Object context)
+        public static void Out(LogLevel logLevel, object message, Object context)
         {
             if(!IsLogLevelSufficient(logLevel))
                 return;
@@ -122,7 +122,7 @@ namespace InventorySystem
 
         [HideInCallstack]
         [Conditional("DEBUG")]
-        public static void Log(LogLevel logLevel, string category, string message, Object context)
+        public static void Out(LogLevel logLevel, string category, string message, Object context)
         {
             if(!IsLogLevelSufficient(logLevel))
                 return;

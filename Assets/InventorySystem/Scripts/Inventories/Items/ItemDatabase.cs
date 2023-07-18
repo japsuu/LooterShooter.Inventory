@@ -31,7 +31,7 @@ namespace InventorySystem.Inventories.Items
         {
             if (!_database.TryAdd(item.Guid, item))
             {
-                Logger.Log(
+                Logger.Out(
                     LogLevel.ERROR,
                     _database.TryGetValue(item.Guid, out ItemData registeredItem)
                         ? $"{nameof(ItemData)} '{item.ItemName}' (GUID: {item.Guid}) will not get registered as it's GUID clashes with {nameof(ItemData)} '{registeredItem.ItemName}'."
@@ -46,7 +46,7 @@ namespace InventorySystem.Inventories.Items
 
             if (!success)
             {
-                Logger.Log(LogLevel.FATAL, $"Cannot get reference to {nameof(ItemData)} with GUID {itemGuid}!");
+                Logger.Out(LogLevel.FATAL, $"Cannot get reference to {nameof(ItemData)} with GUID {itemGuid}!");
             }
             
             return success;

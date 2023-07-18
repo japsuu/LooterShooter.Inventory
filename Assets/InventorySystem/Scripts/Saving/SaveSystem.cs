@@ -1,40 +1,54 @@
-﻿using UnityEngine;
+﻿using System;
+using InventorySystem.InventorySlots;
+using UnityEngine;
 
 namespace InventorySystem.Saving
 {
-    [DefaultExecutionOrder(-1000)]
+    /// <summary>
+    /// WARN: Should be initializable!
+    /// </summary>
+    [DefaultExecutionOrder(-1001)]
     public class SaveSystem : MonoBehaviour
     {
-        private const string INVENTORY_SAVE_FILE_NAME = "inventory_snapshots.txt";
+        private const string INVENTORY_SAVE_FILE_NAME = "player_save_data.txt";
 
-        //private InventorySaver _inventorySaver;
+        private PlayerDataSaver _playerDataSaver;
         
         public static SaveSystem Singleton;
+
+
+        public PlayerSaveData GetLocalPlayerSaveData() => _playerDataSaver.GetLocalPlayerData();
 
 
         private void Awake()
         {
             if (Singleton != null)
             {
-                Logger.Log(LogLevel.ERROR, $"Multiple {nameof(SaveSystem)} found in scene!");
+                Logger.Out(LogLevel.ERROR, $"Multiple {nameof(SaveSystem)} found in scene!");
                 return;
             }
             
             Singleton = this;
 
-            //_inventorySaver = new InventorySaver(INVENTORY_SAVE_FILE_NAME);
+            _playerDataSaver = new(INVENTORY_SAVE_FILE_NAME);
+        }
+
+
+        private void OnEnable()
+        {
+            EquipmentSlot.ContentsChanged += _playerDataSaver.RegisterEquipmentSlotForSaving;
+        }
+
+
+        private void OnDisable()
+        {
+            EquipmentSlot.ContentsChanged -= _playerDataSaver.RegisterEquipmentSlotForSaving;
         }
 
 
         private void OnApplicationQuit()
         {
-            SavePlayerData();
-        }
-
-
-        private void SavePlayerData()
-        {
-            
+            _playerDataSaver.SaveLocalPlayerData();
         }
     }
 }

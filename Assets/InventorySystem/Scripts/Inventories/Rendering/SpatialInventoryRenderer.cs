@@ -99,7 +99,7 @@ namespace InventorySystem.Inventories.Rendering
             
             DraggableItems.Add(inventoryItem, draggableItem);
             
-            Logger.Log(LogLevel.DEBUG, gameObject.name, $"CreateNewDraggable '{inventoryItem.Metadata.ItemData.ItemName}'@{inventoryItem.Bounds.Position}");
+            Logger.Out(LogLevel.DEBUG, gameObject.name, $"CreateNewDraggable '{inventoryItem.Metadata.ItemData.ItemName}'@{inventoryItem.Bounds.Position}");
         }
 
 

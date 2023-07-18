@@ -61,7 +61,7 @@ namespace InventorySystem.Clothing
 
             if (clothingData == null)
             {
-                Logger.Log(LogLevel.ERROR, $"Tried to equip clothes from item ({itemData.ItemData.ItemName}) that wasn't an clothing.");
+                Logger.Out(LogLevel.ERROR, $"Tried to equip clothes from item ({itemData.ItemData.ItemName}) that wasn't an clothing.");
                 type = ClothingType.Hat;
                 return false;
             }
@@ -71,10 +71,10 @@ namespace InventorySystem.Clothing
             // If we already have clothes of the same type equipped, remove them first.
             if (_equippedClothingItems.TryGetValue(clothingData.ClothingType, out ItemMetadata equippedClothingItem))
             {
-                Logger.Log(LogLevel.DEBUG, $"Already have clothes of type {clothingData.ClothingType} equipped ({equippedClothingItem.ItemData.ItemName}), removing them first.");
+                Logger.Out(LogLevel.DEBUG, $"Already have clothes of type {clothingData.ClothingType} equipped ({equippedClothingItem.ItemData.ItemName}), removing them first.");
                 if(!RemoveClothes(clothingData.ClothingType))
                 {
-                    Logger.Log(LogLevel.ERROR, "Unknown error happened with removing existing clothes!");
+                    Logger.Out(LogLevel.ERROR, "Unknown error happened with removing existing clothes!");
                     return false;
                 }
             }
@@ -90,7 +90,7 @@ namespace InventorySystem.Clothing
             if (_equippedClothingItems.Remove(type))
                 return true;
             
-            Logger.Log(LogLevel.WARN, $"Cannot remove clothes of type {type}: there's nothing equipped!");
+            Logger.Out(LogLevel.WARN, $"Cannot remove clothes of type {type}: there's nothing equipped!");
             return false;
         }
     }

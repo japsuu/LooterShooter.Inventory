@@ -42,7 +42,7 @@ namespace InventorySystem.Inventories
                 if(IsItemBoundsValid(item.Bounds))
                     AddItem(item);
                 else
-                    Logger.Log(
+                    Logger.Out(
                         LogLevel.WARN,
                         $"{nameof(SpatialInventory)}: {Name}",
                         $"Could not add item '{item.Metadata.ItemData.ItemName}' as it has invalid bounds.");
@@ -125,7 +125,7 @@ namespace InventorySystem.Inventories
             
             if (metadata == null || metadata.ItemData == null)
             {
-                Logger.Log(LogLevel.WARN, $"{nameof(SpatialInventory)}: {Name}", "Tried to add item with NULL ItemData.");
+                Logger.Out(LogLevel.WARN, $"{nameof(SpatialInventory)}: {Name}", "Tried to add item with NULL ItemData.");
                 return results;
             }
 
@@ -134,7 +134,7 @@ namespace InventorySystem.Inventories
             {
                 if (!TryCreateNewInventoryItem(metadata, out InventoryItem newInventoryItem))
                 {
-                    Logger.Log(LogLevel.DEBUG, $"{nameof(SpatialInventory)}: {Name}", "Not enough space in the inventory!");
+                    Logger.Out(LogLevel.DEBUG, $"{nameof(SpatialInventory)}: {Name}", "Not enough space in the inventory!");
                     return results;
                 }
             
@@ -205,7 +205,7 @@ namespace InventorySystem.Inventories
         {
             _contents[PositionToIndex(item.Bounds.Position)] = item;
             
-            Logger.Log(LogLevel.DEBUG, $"Inventory '{Name}' added {item.Metadata.ItemData.ItemName}@{item.Bounds.Position}");
+            Logger.Out(LogLevel.DEBUG, $"Inventory '{Name}' added {item.Metadata.ItemData.ItemName}@{item.Bounds.Position}");
             
             AddedItem?.Invoke(new AddItemEventArgs(item));
         }
@@ -216,7 +216,7 @@ namespace InventorySystem.Inventories
             InventoryItem removedItem = _contents[PositionToIndex(itemPosition)];
             _contents[PositionToIndex(itemPosition)] = null;
             
-            Logger.Log(LogLevel.DEBUG, $"Inventory '{Name}' removed {removedItem.Metadata.ItemData.ItemName}@{itemPosition}");
+            Logger.Out(LogLevel.DEBUG, $"Inventory '{Name}' removed {removedItem.Metadata.ItemData.ItemName}@{itemPosition}");
             
             RemovedItem?.Invoke(new RemoveItemEventArgs(removedItem));
         }

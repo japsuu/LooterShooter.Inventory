@@ -1,6 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using InventorySystem.Inventories;
 using InventorySystem.Inventories.Items;
 using InventorySystem.Inventories.Rendering;
+using InventorySystem.Saving;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,16 +12,22 @@ namespace InventorySystem.InventorySlots
 {
     public class EquipmentSlot : ItemSlot, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
+        public static event Action<EquipmentSlot> ContentsChanged;
+        
         [SerializeField] private KeyCode _selectKey = KeyCode.Alpha1;
 
         [SerializeField] private TMP_Text _selectKeyText;
         [SerializeField] private TMP_Text _itemNameText;
+        
+        [Tooltip("Unique id of this slot. Used for saving it's contents.")]
+        [SerializeField] private string _uniqueIdentifier = "weapon_1";
         
         [Tooltip("What types of items can be dropped to this slot. Leave empty to not allow any items.")]
         [SerializeField] private ItemType[] _itemTypeRestrictions;
         
         private DraggableItem _draggedItem;
 
+        protected override string Identifier => $"equipment_{_uniqueIdentifier}";
         protected override ItemType[] ItemTypeRestrictions => _itemTypeRestrictions;
 
 
@@ -28,6 +37,32 @@ namespace InventorySystem.InventorySlots
 
             _selectKeyText.text = ExtractNumbersOrLetters(_selectKey);
             _itemNameText.text = "";
+
+            PlayerSaveData saveData = SaveSystem.Singleton.GetLocalPlayerSaveData();
+            
+            if (saveData == null)
+                return;
+            
+            if (saveData.SavedEquipmentSlots == null)
+                return;
+                
+            foreach (EquipmentSlotSaveData slot in saveData.SavedEquipmentSlots)
+            {
+                if (slot.Identifier != Name)
+                    continue;
+
+                if (slot.ContainedItem != null)
+                {
+                    AddItem(
+                        new InventoryItem(
+                            slot.ContainedItem,
+                            new InventoryBounds(
+                                slot.ContainedItem.ItemData, Vector2Int.zero, ItemRotation.DEG_0),
+                            ItemRotation.DEG_0, this));
+                }
+
+                break;
+            }
         }
 
 
@@ -43,7 +78,7 @@ namespace InventorySystem.InventorySlots
         private void Selected()
         {
             string item = AssignedItem == null ? "None" : AssignedItem.Metadata.ItemData.ItemName;
-            Logger.Log(LogLevel.INFO, Name, $"SelectedItem: {item}.");
+            Logger.Out(LogLevel.INFO, Name, $"SelectedItem: {item}.");
         }
 
         
@@ -86,6 +121,8 @@ namespace InventorySystem.InventorySlots
             
             if(_draggedItem != null)
                 Destroy(_draggedItem.gameObject);
+            
+            ContentsChanged?.Invoke(this);
         }
 
 
@@ -94,6 +131,8 @@ namespace InventorySystem.InventorySlots
             base.OnItemAdded();
             
             _itemNameText.text = AssignedItem.Metadata.ItemData.ItemName;
+            
+            ContentsChanged?.Invoke(this);
         }
 
 

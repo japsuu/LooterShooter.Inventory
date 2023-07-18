@@ -7,22 +7,21 @@ using UnityEngine.UI;
 namespace InventorySystem.InventorySlots
 {
     [RequireComponent(typeof(Image))]
-    public abstract class ItemSlot : DraggableItemReceiverObject, IInventory    //BUG: Remove IInventory
+    public abstract class ItemSlot : DraggableItemReceiverObject, IInventory    //TODO: Remove IInventory?
     {
         /// <summary>
         /// What types of items can be dropped to this slot. Leave empty to allow any items.
         /// </summary>
         protected abstract ItemType[] ItemTypeRestrictions { get; }
         
-        //[Tooltip("Unique name of this slot. Used for saving it's contents.")]
-        //protected string _uniqueSlotName = "gear";
+        protected abstract string Identifier { get; }
         
         [SerializeField] private Image _assignedItemImage;
         
-        public string Name => "slot_CHANGE_ME";
-
         protected InventoryItem AssignedItem;
-        
+
+        public string Name => $"slot_{Identifier.ToLower()}";
+        public ItemMetadata AssignedItemMetadata => AssignedItem.Metadata;
         public override bool DoSnapHighlighterToGrid => false;
 
 
