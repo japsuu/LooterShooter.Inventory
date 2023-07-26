@@ -5,10 +5,8 @@ using UnityEngine;
 namespace LooterShooter.Framework.Inventories.Items
 {
     [DefaultExecutionOrder(-2000)]
-    public class ItemDatabase : MonoBehaviour
+    public class ItemDatabase : SingletonBehaviour<ItemDatabase>
     {
-        public static ItemDatabase Singleton;
-
         [SerializeField] private List<ItemData> _testingDatabase;
 
         private Dictionary<Guid, ItemData> _database;
@@ -16,8 +14,6 @@ namespace LooterShooter.Framework.Inventories.Items
 
         private void Awake()
         {
-            Singleton = this;
-            
             _database = new();
 
             foreach (ItemData item in _testingDatabase)

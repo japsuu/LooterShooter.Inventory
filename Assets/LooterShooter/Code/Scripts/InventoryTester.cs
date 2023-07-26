@@ -29,12 +29,12 @@ namespace LooterShooter
             {
                 foreach (ClothingItemData itemData in entry.ClothesToEquip)
                 {
-                    PlayerClothingManager.Singleton.RequestEquipClothes(new ItemMetadata(itemData));
+                    PlayerClothingManager.Singleton.RequestEquipClothes(new ItemMetadata(itemData, null));
                 }
                 
                 foreach (ItemData itemData in entry.ItemsToSpawn)
                 {
-                    PlayerInventoryManager.Singleton.TryAddItems(new ItemMetadata(itemData), 1);
+                    PlayerInventoryManager.Singleton.TryAddItems(new ItemMetadata(itemData, null), 1);
                 }
             }
         }

@@ -33,16 +33,15 @@ namespace LooterShooter.Framework.Inventories.Serialization
         public override InventoryItem ReadJson(JsonReader reader, Type objectType, InventoryItem existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             JObject obj = JObject.Load(reader);
-
-            if (obj == null)
-                throw new InvalidDataException("Could not load JObject: reader is not valid JSON.");
-
             JToken metadataToken = obj.GetValue(METADATA_PROPERTY_NAME);
             JToken positionToken = obj.GetValue(POSITION_PROPERTY_NAME);
             JToken rotationToken = obj.GetValue(ROTATION_PROPERTY_NAME);
 
             if (metadataToken == null || positionToken == null || rotationToken == null)
-                throw new InvalidDataException("Could not load JToken (metadata/position/rotation): PROPERTY_NAME was null.");
+            {
+                Logger.Write(LogLevel.ERROR, "Could not load JToken (metadata/position/rotation): PROPERTY_NAME was null.");
+                return null;
+            }
             
             ItemMetadata metadata = metadataToken.ToObject<ItemMetadata>(serializer);
             InventoryItemRotation rotationInInventory = rotationToken.ToObject<InventoryItemRotation>();
@@ -51,7 +50,16 @@ namespace LooterShooter.Framework.Inventories.Serialization
             JToken posYToken = positionToken["posY"];
             
             if(posXToken == null || posYToken == null)
-                throw new InvalidDataException("Could not load JToken (position: posX/posY): property not found.");
+            {
+                Logger.Write(LogLevel.ERROR, "Could not load JToken (position: posX/posY): property not found.");
+                return null;
+            }
+
+            if (metadata == null)
+            {
+                Logger.Write(LogLevel.ERROR, "Could not load inventory item because loaded metadata was null!");
+                return null;
+            }
             
             int posX = posXToken.ToObject<int>();
             int posY = posYToken.ToObject<int>();

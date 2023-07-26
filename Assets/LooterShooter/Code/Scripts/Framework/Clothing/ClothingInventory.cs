@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using LooterShooter.Framework.Inventories;
 using LooterShooter.Framework.Inventories.Items;
+using LooterShooter.Framework.Inventories.Serialization;
 using Newtonsoft.Json;
 
 namespace LooterShooter.Framework.Clothing
@@ -10,14 +11,13 @@ namespace LooterShooter.Framework.Clothing
     /// Represents an clothing item that contains an inventory.
     /// </summary>
     [Serializable]
+    [JsonConverter(typeof(ClothingInventoryConverter))]
     public class ClothingInventory
     {
         [NotNull]
-        [JsonProperty("clothingItemMetadata")]
         public ItemMetadata ClothingItem { get; private set; }
         
         [NotNull]
-        [JsonProperty("inventory")]
         public SpatialInventory Inventory { get; private set; }
         
         

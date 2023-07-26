@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using LooterShooter.Framework.Inventories.Items;
 using Newtonsoft.Json;
@@ -63,11 +64,19 @@ namespace LooterShooter.Framework.Inventories.Serialization
             SpatialInventory spatialInventory = new(name, widthCells, heightCells);
 
             // Construct all contents.
-            InventoryItem[] contents = new InventoryItem[contentsArray.Count];
+            List<InventoryItem> contents = new(contentsArray.Count);
             for (int i = 0; i < contentsArray.Count; i++)
             {
-                contents[i] = contentsArray[i].ToObject<InventoryItem>(serializer);
-                contents[i].OverwriteContainingInventory(spatialInventory);
+                InventoryItem deserializedInventoryItem = contentsArray[i].ToObject<InventoryItem>(serializer);
+
+                if (deserializedInventoryItem == null)
+                {
+                    Logger.Write(LogLevel.WARN, nameof(ItemMetadataConverter), "Null item will not be added to inventory.");
+                    continue;
+                }
+                
+                deserializedInventoryItem.OverwriteContainingInventory(spatialInventory);
+                contents.Add(deserializedInventoryItem);
             }
             
             // Override inventory contents with loaded contents.

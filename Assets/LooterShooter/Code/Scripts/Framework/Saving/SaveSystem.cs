@@ -5,13 +5,11 @@ using UnityEngine;
 namespace LooterShooter.Framework.Saving
 {
     [DefaultExecutionOrder(-1001)]  //TODO: Convert to IInitializable.
-    public class SaveSystem : MonoBehaviour
+    public class SaveSystem : SingletonBehaviour<SaveSystem>
     {
-        private const string PLAYER_SAVE_FILE_NAME = "player_save_data.txt";
+        private const string PLAYER_SAVE_FILE_NAME = "player_save_data.json";
 
         private PlayerDataSaver _playerDataSaver;
-        
-        public static SaveSystem Singleton;
 
 
         public PlayerSaveData GetLocalPlayerSaveData() => _playerDataSaver.GetLocalPlayerData();
@@ -19,14 +17,6 @@ namespace LooterShooter.Framework.Saving
 
         private void Awake()
         {
-            if (Singleton != null)
-            {
-                Logger.Write(LogLevel.ERROR, $"Multiple {nameof(SaveSystem)} found in scene!");
-                return;
-            }
-            
-            Singleton = this;
-
             _playerDataSaver = new(Path.Combine(Application.persistentDataPath, PLAYER_SAVE_FILE_NAME));
         }
 

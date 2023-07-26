@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using LooterShooter.Framework.Inventories.Items;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,6 +9,7 @@ namespace LooterShooter.Framework.Inventories.Serialization
     public class ItemMetadataConverter : JsonConverter<ItemMetadata>
     {
         private const string ITEM_DATA_GUID_PROPERTY_NAME = "itemDataGuid";
+        private const string METADATA_PROPERTY_NAME = "assignedMetadata";
         
         public override bool CanRead => true;
         public override bool CanWrite => true;
@@ -18,7 +19,8 @@ namespace LooterShooter.Framework.Inventories.Serialization
         {
             JObject obj = new()
             {
-                { ITEM_DATA_GUID_PROPERTY_NAME, JToken.FromObject(value.ItemData.Guid) }
+                { ITEM_DATA_GUID_PROPERTY_NAME, JToken.FromObject(value.ItemData.Guid) },
+                { METADATA_PROPERTY_NAME, JToken.FromObject(value.AssignedMetadata) }
             };
 
             obj.WriteTo(writer);
@@ -28,16 +30,30 @@ namespace LooterShooter.Framework.Inventories.Serialization
         {
             JObject obj = JObject.Load(reader);
             JToken dataGuidToken = obj.GetValue(ITEM_DATA_GUID_PROPERTY_NAME);
+            JToken metadataToken = obj.GetValue(METADATA_PROPERTY_NAME);
             
             if(dataGuidToken == null)
-                throw new InvalidDataException("Could not load JToken (itemDataId): property not found.");
+            {
+                Logger.Write(LogLevel.ERROR, nameof(ItemMetadataConverter), "Could not load JToken (itemDataId): property not found.");
+                return null;
+            }
+            
+            if(metadataToken == null)
+            {
+                Logger.Write(LogLevel.ERROR, nameof(ItemMetadataConverter), "Could not load JToken (metadata): property not found.");
+                return null;
+            }
             
             string guidString = dataGuidToken.ToObject<string>();
+            Dictionary<string, object> metadata = metadataToken.ToObject<Dictionary<string, object>>();
             
             if(!Guid.TryParse(guidString, out Guid guid))
-                throw new InvalidDataException("Could not parse itemMetadata: GUID is invalid and could not be parsed.");
-            
-            return ItemDatabase.Singleton.TryGetItemById(guid, out ItemData itemData) ? new ItemMetadata(itemData) : null;
+            {
+                Logger.Write(LogLevel.ERROR, nameof(ItemMetadataConverter), "Could not parse itemMetadata: GUID is invalid and could not be parsed.");
+                return null;
+            }
+
+            return ItemDatabase.Singleton.TryGetItemById(guid, out ItemData itemData) ? new ItemMetadata(itemData, metadata) : null;
         }
     }
 }
